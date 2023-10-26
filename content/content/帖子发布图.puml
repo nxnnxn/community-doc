@@ -1,0 +1,36 @@
+@startuml
+start
+:基本参数校验(长度/枚举值);
+:调用安全接口(IP过滤,单用户频度控制);
+if(是否安全通过) then (true);
+:调用注册系统;
+if(用户是否实名)then (true)
+:调用底层存储应用;
+:调用禁言系统;
+if(用户是否禁言)then (true)
+switch (内容检验)
+case (包含@用户)
+  :检验用户是否存在;
+case (包含话题)
+  :检验话题是否存在;
+case (包含地点数据)
+  :检验POI数据是否存在;
+case (包含图片)
+  :检验图片是否真实存在;
+case (判断发布用户)
+    :检验图片是否真实存在;
+endswitch
+:落库,标识待审核;
+endif
+endif
+endif
+stop
+
+start
+:数据库Canal变更数据;
+if(根据规则判断是否发送MQ) then (true)
+:发送消息变更mq;
+endif
+stop
+
+@enduml
