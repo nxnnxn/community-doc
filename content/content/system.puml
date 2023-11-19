@@ -1,0 +1,33 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+
+Person(user, "用户")
+Person(user1, "运营")
+Person(user2, "安检")
+
+System(contentProduction, "内容生产")
+
+System_Ext(security,"安全系统")
+System_Ext(userSystem,"用户系统")
+System_Ext(community, "社区系统")
+System_Ext(audit, "审核系统")
+System_Ext(message, "消息系统")
+System_Ext(play, "播放系统")
+Rel(user, contentProduction, "发帖&生产工具")
+Rel(user1,contentProduction, "运营")
+
+Rel(contentProduction, security, "安全规则")
+Rel(contentProduction, userSystem, "用户认证&权限")
+Rel(contentProduction, community, "获取社区信息")
+Rel(contentProduction, message, "发布消息")
+Rel(contentProduction, audit, "发起审核")
+Rel_U(user2, audit, "审核")
+
+
+
+Rel_U(play, contentProduction, "获取地址")
+
+
+
+@enduml
