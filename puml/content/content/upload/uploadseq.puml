@@ -1,0 +1,51 @@
+@startuml
+!include <C4/C4_Sequence>
+SHOW_INDEX()
+SHOW_LEGEND()
+
+Person(user, "用户")
+System(gateway,"网关系统")
+
+Rel(user, gateway, "请求")
+Rel(gateway, gateway, "用户身份验证")
+
+Container_Boundary(postFacade, "投稿应用")
+    Component(checkComponent, "校验组件", "component", "IP校验&安全检验")
+Boundary_End()
+
+Container_Boundary(postService, "投稿服务")
+    Component(authComponent, "权限组件", "component", "用户权限检验")
+    Component(uploadComponent, "上传组件", "component", "上传令牌服务")
+    Rel(gateway, checkComponent, "IP过滤")
+    Rel(checkComponent, authComponent, "用户频度\n&权限控制")
+    Rel(authComponent, uploadComponent, "上传请求")
+    Rel(uploadComponent, uploadComponent, "配置获取\n用户Bucket")
+Boundary_End()
+ComponentDb(db, "投稿数据库", "Mysql")
+Rel(uploadComponent, db, "生成文件名\n&存储记录")
+System(objectStorage, "对象存储")
+Rel(uploadComponent, objectStorage, "获取StsToken")
+Rel(objectStorage, uploadComponent, "返回")
+Rel(uploadComponent, checkComponent, "返回")
+Rel(checkComponent, gateway, "返回")
+Rel(gateway, user, "返回")
+Rel(user, objectStorage, "上传文件")
+Rel(objectStorage, user, "上传完成")
+Rel(user, gateway, "请求")
+Rel(gateway, gateway, "用户身份验证")
+Rel(gateway, checkComponent, "上传完成验证")
+Rel(checkComponent, uploadComponent, "上传完成验证")
+Rel(uploadComponent, objectStorage, "获取文件是否存在\nCRC64是否正确")
+Rel(objectStorage, uploadComponent, "返回")
+Rel(uploadComponent, db, "修改上传状态")
+Rel(db, uploadComponent, "返回")
+Rel(uploadComponent, checkComponent, "返回")
+Rel(checkComponent, gateway, "返回")
+Rel(gateway, user, "返回")
+
+
+
+
+
+
+@enduml

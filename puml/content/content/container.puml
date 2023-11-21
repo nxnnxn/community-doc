@@ -2,14 +2,16 @@
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
 
+title 投稿系统应用架构图
+
 Person(user, "用户")
 Person(user1, "运营")
 Person(user2, "安检")
 
 System_Boundary(contentProduction, "内容生产"){
-    Container_Boundary(postBoundary, "帖子") {
-          Container(postFacade, "帖子前台应用","Spring-boot")
-          Container(postService, "帖子服务应用","Spring-boot")
+    System_Boundary(postBoundary, "投稿") {
+          Container(postFacade, "投稿应用","Spring-boot")
+          Container(postService, "投稿服务","Spring-boot")
           Container(postJob, "帖子任务应用","Spring-boot")
           ContainerDb(postDatabase, "帖子数据库", "Mysql")
           ContainerQueue(postQueue, "帖子队列", "RocketMq")
@@ -19,14 +21,14 @@ System_Boundary(contentProduction, "内容生产"){
           Rel_R(postService,postQueue, "发送")
           BiRel_R(postQueue,postJob, "消息接收&任务")
     }
-     Container_Boundary(transcodeBoundary, "转码") {
-           Container(transcode, "转码系统","Spring-boot")
-     }
-    Container_Boundary(postToolBoundary, "工具") {
-         Container(postTool, "生产工具系统","Spring-boot")
+    System_Boundary(transcodeBoundary, "转码") {
+           System(transcode, "转码系统")
+    }
+    System_Boundary(postToolBoundary, "工具") {
+          System(postTool, "工具系统")
     }
     Rel_L(postService, transcode, "调用")
-
+    Rel_L(postFacade, postTool, "调用")
 }
 
 System_Ext(security,"安全系统")
@@ -35,10 +37,10 @@ System_Ext(community, "社区系统")
 System_Ext(audit, "审核系统")
 System_Ext(message, "消息系统")
 System_Ext(play, "播放系统")
+System_Ext(gateway,"网关系统")
 
-
-Rel(user, postFacade, "发帖")
-Rel(user, postTool, "生产工具")
+Rel_R(user, gateway, "发帖&工具")
+Rel(gateway, postFacade, "发帖&工具")
 Rel(user1,contentProduction, "运营")
 
 Rel(contentProduction, security, "安全规则")
