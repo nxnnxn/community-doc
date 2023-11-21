@@ -5,15 +5,16 @@ LAYOUT_WITH_LEGEND()
 title 上传链路组件图
 
 Person(user, "用户")
+System_Ext(gateway,"网关系统")
 
 Container_Boundary(postFacade, "投稿应用"){
     Component(checkComponent, "校验组件", "component", "安全检验")
     Component(authComponent, "权限组件", "component", "权限检验")
+    Rel(checkComponent, authComponent, "权限规则")
 }
 
 Container_Boundary(postService, "投稿服务"){
     Component(uploadComponent, "上传组件", "component", "上传令牌服务")
-    Rel(checkComponent, authComponent, "权限规则")
     Rel(authComponent, uploadComponent, "上传")
 }
 
@@ -22,7 +23,6 @@ Container_Boundary("objectStorage", "对象存储"){
     System_Ext(cos,"腾讯COS")
 }
 
-System_Ext(gateway,"网关系统")
 System_Ext(security,"安全系统")
 System_Ext(userSystem,"用户系统")
 ContainerDb(db, "投稿数据库", "Mysql","上传记录")
