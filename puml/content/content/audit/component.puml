@@ -1,0 +1,43 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+
+title 投稿链路组件图
+
+Person(user, "用户")
+System_Ext(gateway,"网关系统")
+Rel_R(user, gateway, "上传")
+
+Container_Boundary(postFacade, "投稿应用"){
+    Component(checkComponent, "校验组件", "component", "安全检验")
+    Component(authComponent, "权限组件", "component", "用户权限检验")
+    Rel_R(gateway, checkComponent, "上传")
+    Rel(checkComponent, authComponent, "权限规则")
+}
+
+Container_Boundary(postService, "投稿服务"){
+    Component(uploadComponent, "上传组件", "component", "上传令牌服务")
+    Rel(authComponent, uploadComponent, "上传")
+}
+
+Container_Boundary(postJob, "投稿任务"){
+
+}
+
+
+
+System_Ext(security,"安全系统")
+System_Ext(userSystem,"用户系统")
+ContainerDb(db, "投稿数据库", "Mysql","上传记录")
+
+Rel_R(authComponent, userSystem, "权限规则")
+
+
+
+
+
+
+
+
+
+@enduml
