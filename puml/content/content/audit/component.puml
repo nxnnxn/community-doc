@@ -26,7 +26,7 @@ Container_Boundary(postJob, "投稿任务"){
 
 
 
-System_Ext(security,"安全系统")
+System_Ext(security,"风控系统")
 System_Ext(userSystem,"用户系统")
 ContainerDb(db, "投稿数据库", "Mysql","上传记录")
 

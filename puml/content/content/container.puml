@@ -31,7 +31,7 @@ System_Boundary(contentProduction, "内容生产"){
     Rel_L(postFacade, postTool, "调用")
 }
 
-System_Ext(security,"安全系统")
+System_Ext(security,"风控系统")
 System_Ext(userSystem,"用户系统")
 System_Ext(community, "社区系统")
 System_Ext(audit, "审核系统")

@@ -17,7 +17,7 @@ Boundary_End()
 Container_Boundary(postService, "投稿服务")
     Component(uploadComponent, "上传组件", "component", "上传令牌服务")
 Boundary_End()
-System(security,"安全系统")
+System(security,"风控系统")
 System(userSystem,"用户系统")
 ComponentDb(db, "投稿数据库", "Mysql")
 
