@@ -1,0 +1,62 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+
+title 投稿系统应用架构图
+
+Person(user, "用户")
+Person(user1, "运营")
+Person(user2, "安检")
+
+System_Boundary(contentProduction, "内容生产"){
+    System_Boundary(postBoundary, "投稿") {
+          Container(postFacade, "投稿应用","Spring-boot")
+          Container(postService, "投稿服务","Spring-boot")
+          Container(postJob, "帖子任务应用","Spring-boot")
+          ContainerDb(postDatabase, "帖子数据库", "Mysql")
+          ContainerQueue(postQueue, "帖子队列", "RocketMq")
+          Rel(postFacade, postService, "调用")
+          Rel_U(postService, postDatabase, "调用")
+          Rel_U(postJob, postDatabase, "调用")
+          Rel_R(postService,postQueue, "发送")
+          BiRel_R(postQueue,postJob, "消息接收&任务")
+    }
+    System_Boundary(transcodeBoundary, "转码") {
+           System(transcode, "转码系统")
+    }
+    System_Boundary(postToolBoundary, "工具") {
+          System(postTool, "工具系统")
+    }
+    Rel_L(postService, transcode, "调用")
+    Rel_L(postFacade, postTool, "调用")
+}
+
+System_Ext(security,"风控系统")
+System_Ext(userSystem,"用户系统")
+System_Ext(community, "社区系统")
+System_Ext(audit, "审核系统")
+System_Ext(message, "消息系统")
+System_Ext(play, "播放系统")
+System_Ext(gateway,"网关系统")
+
+Rel_R(user, gateway, "发帖&工具")
+Rel(gateway, postFacade, "发帖&工具")
+Rel(user1,contentProduction, "运营")
+
+Rel(contentProduction, security, "安全规则")
+Rel(postService, userSystem, "用户认证&权限")
+Rel(postService, community, "获取社区信息")
+Rel(postJob, message, "发布消息")
+Rel(postJob, audit, "发起审核")
+Rel_U(play, postService, "获取地址")
+Rel_U(user2, audit, "审核")
+
+
+
+
+
+
+
+@enduml
+
+
