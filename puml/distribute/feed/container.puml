@@ -1,0 +1,91 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+
+Person(customer, 用户, "A customer of the bank, with personal bank accounts")
+
+System_Boundary(c1, "关系") {
+    Container(web_app, "Web Application", "Java, Spring MVC", "Delivers the static content and the Internet banking SPA")
+    Container(spa, "Single-Page App", "JavaScript, Angular", "Provides all the Internet banking functionality to customers via their web browser")
+    Container(mobile_app, "Mobile App", "C#, Xamarin", "Provides a limited subset of the Internet banking functionality to customers via their mobile device")
+    ContainerDb(database, "Database", "SQL Database", "Stores user registration information, hashed auth credentials, access logs, etc.")
+    Container(backend_api, "API Application", "Java, Docker Container", "Provides Internet banking functionality via API")
+}
+
+System_Ext(email_system, "E-Mail System", "The internal Microsoft Exchange system")
+System_Ext(banking_system, "Mainframe Banking System", "Stores all of the core banking information about customers, accounts, transactions, etc.")
+
+Rel(customer, web_app, "Uses", "HTTPS")
+Rel(customer, spa, "Uses", "HTTPS")
+Rel(customer, mobile_app, "Uses")
+
+Rel_Neighbor(web_app, spa, "Delivers")
+Rel(spa, backend_api, "Uses", "async, JSON/HTTPS")
+Rel(mobile_app, backend_api, "Uses", "async, JSON/HTTPS")
+Rel_Back_Neighbor(database, backend_api, "Reads from and writes to", "sync, JDBC")
+
+Rel_Back(customer, email_system, "Sends e-mails to")
+Rel_Back(email_system, backend_api, "Sends e-mails using", "sync, SMTP")
+Rel_Neighbor(backend_api, banking_system, "Uses", "sync/async, XML/HTTPS")
+
+cloud tt
+
+node "关系facade" {
+     [关系发布]
+     [关注列表]
+}
+
+node "场景FEED" {
+  [关系插件]<-left-[Feed组装]
+
+}
+
+node "关系系统" {
+     [关系内容]
+     [关系统计]
+}
+
+node "关系任务系统" {
+   [关系统计任务]-left->[关系同步任务]
+}
+
+node "关注系统" {
+     [关注信息]
+}
+
+node "消息系统" {
+    [消息投递]
+}
+
+database 关系库
+
+database 统计库
+
+database redis
+
+关系内容-->关系库
+关系统计-->统计库
+统计库<--关系统计任务
+关系库<--关系统计任务
+关系库-->tt
+统计库-->tt
+
+tt--> 关系统计任务
+tt--> 关系同步任务
+
+关系插件-->redis
+
+关系系统<-right-关系插件
+关系系统-right->redis
+
+关系发布-->关系内容
+消息投递<--关系同步任务
+
+关注信息-->关系库
+
+关注信息-->统计库
+
+关注列表-->关注信息
+
+
+@enduml
