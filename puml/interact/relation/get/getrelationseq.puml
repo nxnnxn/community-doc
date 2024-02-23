@@ -1,20 +1,39 @@
 @startuml
-start
-:基本参数校验(长度/枚举值);
-:校验参数是否传入当前登陆用户ID;
-if(传入当前用户ID) then (true);
-:拼装布隆过滤器数据,查询存在判断缓存;
-if(缓存返回数据标识有一些存在) then (true);
-:查询数据库;
-endif
-endif
-:拼装布隆过滤器数据,查询存在判断缓存;
-if(缓存返回数据标识有一些存在) then (true);
-:拼装缓存数据,查询统计数据;
-if(缓存数据查询有一些不在) then (true);
-:查询数据库,更新缓存;
-endif
-endif
-stop
+!include <C4/C4_Sequence>
+SHOW_INDEX()
+SHOW_LEGEND()
 
+System(relationClient,"关系客户端")
+
+Container_Boundary(relationService, "关系服务")
+    Component(relationComponent, "关系组件", "component", "关系关注")
+    Component(statComponent, "计数器组件", "component", "计数器更新")
+Boundary_End()
+ComponentDb(db, "数据库", "表格数据库")
+ComponentDb(redis, "缓存", "redis")
+
+Rel(relationClient, statComponent, "获取相关计数")
+alt 未传入当前登陆用户
+Rel(statComponent, redis, "拼装布隆过滤器数据,查询存在判断缓存")
+Rel(redis, statComponent, "返回")
+alt 缓存返回数据标识有一些存在
+Rel(statComponent, redis, "拼装缓存数据,查询统计数据")
+Rel(redis, statComponent, "返回")
+alt 缓存数据查询有一些不在
+Rel(statComponent, db, "查询数据库")
+Rel(db, statComponent, "返回")
+end
+end
+else 传入当前登陆用户
+Rel(relationComponent, redis, "拼装布隆过滤器数据,查询存在判断缓存")
+Rel(redis, relationComponent, "返回")
+alt 缓存返回数据标识有一些存在
+Rel(relationComponent, db, "查询数据")
+end
+Rel(db, relationComponent, "返回数据")
+end
+Rel(statComponent, relationClient, "返回")
+SHOW_LEGEND()
 @enduml
+
+
