@@ -20,11 +20,6 @@ Container_Boundary(postService, "投稿服务"){
     Rel(authComponent, uploadComponent, "上传")
 }
 
-Container_Boundary(postJob, "投稿任务"){
-
-}
-
-
 
 System_Ext(security,"风控系统")
 System_Ext(userSystem,"用户系统")

@@ -2,35 +2,34 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 
-title 投稿链路组件图
+title 关注/点赞/收藏链路组件图
 
 Person(user, "用户")
 System_Ext(gateway,"网关系统")
-Rel_R(user, gateway, "上传")
+Rel_R(user, gateway, "点赞/取消点赞")
 
-Container_Boundary(postFacade, "投稿应用"){
-    Component(checkComponent, "校验组件", "component", "安全检验")
+Container_Boundary(relationFacade, "关系应用"){
+    Component(checkComponent, "校验组件", "component", "检验")
     Component(authComponent, "权限组件", "component", "用户权限检验")
-    Rel_R(gateway, checkComponent, "上传")
+    Rel_R(gateway, checkComponent, "点赞/取消点赞")
     Rel(checkComponent, authComponent, "权限规则")
 }
 
-Container_Boundary(postService, "投稿服务"){
-    Component(uploadComponent, "上传组件", "component", "上传令牌服务")
+Container_Boundary(relationService, "关系服务"){
+    Component(relationComponent, "组件", "component", "上传令牌服务")
     Rel(authComponent, uploadComponent, "上传")
-}
-
-Container_Boundary(postJob, "投稿任务"){
-
 }
 
 
 
 System_Ext(security,"风控系统")
+System_Ext(video,"投稿系统")
 System_Ext(userSystem,"用户系统")
-ContainerDb(db, "投稿数据库", "Mysql","上传记录")
 
-Rel_R(authComponent, userSystem, "权限规则")
+Rel_R(checkComponent, security, "安全规则校验")
+Rel(checkComponent, video, "视频信息校验")
+Rel(authComponent, userSystem, "权限规则")
+
 
 
 
