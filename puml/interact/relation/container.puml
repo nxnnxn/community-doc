@@ -2,90 +2,48 @@
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
 
-Person(customer, 用户, "A customer of the bank, with personal bank accounts")
+title 关系系统应用架构图
 
-System_Boundary(c1, "关系") {
-    Container(web_app, "Web Application", "Java, Spring MVC", "Delivers the static content and the Internet banking SPA")
-    Container(spa, "Single-Page App", "JavaScript, Angular", "Provides all the Internet banking functionality to customers via their web browser")
-    Container(mobile_app, "Mobile App", "C#, Xamarin", "Provides a limited subset of the Internet banking functionality to customers via their mobile device")
-    ContainerDb(database, "Database", "SQL Database", "Stores user registration information, hashed auth credentials, access logs, etc.")
-    Container(backend_api, "API Application", "Java, Docker Container", "Provides Internet banking functionality via API")
-}
+Person(user, "用户")
 
-System_Ext(email_system, "E-Mail System", "The internal Microsoft Exchange system")
-System_Ext(banking_system, "Mainframe Banking System", "Stores all of the core banking information about customers, accounts, transactions, etc.")
+System_Boundary(relationProduction, "关系"){
+    System_Boundary(relationBoundary, "关系系统") {
+          Container(relationFacade, "关系facade","Spring-boot")
+          Container(relationReadService, "关系读服务","Spring-boot")
+          Container(relationWriteService, "关系服务","Spring-boot")
+          ContainerDb(relationDatabase, "关系/统计库", "表格存储")
+          ContainerQueue(relationQueue, "队列", "RocketMq")
+          Rel_L(relationFacade, relationReadService, "调用")
+          Rel(relationFacade, relationWriteService, "调用")
+          Rel(relationReadService, relationDatabase, "调用")
+          Rel(relationWriteService, relationDatabase, "调用")
+          Rel_L(relationDatabase, relationQueue, "调用")
+          Rel(relationWriteService, relationQueue, "调用")
 
-Rel(customer, web_app, "Uses", "HTTPS")
-Rel(customer, spa, "Uses", "HTTPS")
-Rel(customer, mobile_app, "Uses")
-
-Rel_Neighbor(web_app, spa, "Delivers")
-Rel(spa, backend_api, "Uses", "async, JSON/HTTPS")
-Rel(mobile_app, backend_api, "Uses", "async, JSON/HTTPS")
-Rel_Back_Neighbor(database, backend_api, "Reads from and writes to", "sync, JDBC")
-
-Rel_Back(customer, email_system, "Sends e-mails to")
-Rel_Back(email_system, backend_api, "Sends e-mails using", "sync, SMTP")
-Rel_Neighbor(backend_api, banking_system, "Uses", "sync/async, XML/HTTPS")
-
-cloud tt
-
-node "关系facade" {
-     [关系发布]
-     [关注列表]
-}
-
-node "场景FEED" {
-  [关系插件]<-left-[Feed组装]
+    }
+    System_Boundary(followBoundary, "关注系统") {
+           System(follow, "关注系统")
+    }
+    System_Boundary(relationClientBoundary, "客户端") {
+          Container(relationClient, "关系客户端","jar")
+    }
 
 }
+System_Ext(gateway,"网关系统")
+System_Ext(feed, "场景Feed")
+System_Ext(security,"安全系统")
+System_Ext(userSystem,"用户系统")
 
-node "关系系统" {
-     [关系内容]
-     [关系统计]
-}
 
-node "关系任务系统" {
-   [关系统计任务]-left->[关系同步任务]
-}
+Rel_R(user, gateway, "关注/点赞/收藏")
+Rel(gateway, relationFacade, "关注/点赞/收藏")
+Rel_R(relationFacade, security, "安全检查")
+Rel_R(relationWriteService, userSystem, "权限检验")
+Rel_R(follow,relationBoundary, "依赖")
+Rel_U(relationClient,relationBoundary, "调用")
+Rel_U(relationClient,follow, "调用")
+Rel(feed,relationClient, "调用")
 
-node "关注系统" {
-     [关注信息]
-}
-
-node "消息系统" {
-    [消息投递]
-}
-
-database 关系库
-
-database 统计库
-
-database redis
-
-关系内容-->关系库
-关系统计-->统计库
-统计库<--关系统计任务
-关系库<--关系统计任务
-关系库-->tt
-统计库-->tt
-
-tt--> 关系统计任务
-tt--> 关系同步任务
-
-关系插件-->redis
-
-关系系统<-right-关系插件
-关系系统-right->redis
-
-关系发布-->关系内容
-消息投递<--关系同步任务
-
-关注信息-->关系库
-
-关注信息-->统计库
-
-关注列表-->关注信息
 
 
 @enduml
