@@ -3,19 +3,9 @@
 SHOW_INDEX()
 SHOW_LEGEND()
 
-Person(user, "用户")
-System(gateway,"网关系统")
-
-Rel(user, gateway, "请求")
-Rel(gateway, gateway, "用户身份验证")
-
-Container_Boundary(postFacade, "投稿应用")
-    Component(checkComponent, "校验组件", "component", "IP校验&安全检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
-Boundary_End()
-
-Container_Boundary(postService, "投稿服务")
-    Component(uploadComponent, "上传组件", "component", "上传令牌服务")
+Container_Boundary(postReadService, "投稿查询服务")
+    Component(selectComponent, "查询组件", "component", "查询服务")
+    Component(cacheComponent, "缓存组件", "component", "缓存查询服务")
 Boundary_End()
 System(security,"风控系统")
 System(userSystem,"用户系统")

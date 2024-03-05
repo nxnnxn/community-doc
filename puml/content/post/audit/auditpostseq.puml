@@ -2,58 +2,54 @@
 !include <C4/C4_Sequence>
 SHOW_INDEX()
 SHOW_LEGEND()
-
-Person(user, "用户")
-System(gateway,"网关系统")
-
-Rel(user, gateway, "请求")
-Rel(gateway, gateway, "用户身份验证")
-
-Container_Boundary(postFacade, "投稿应用")
-    Component(checkComponent, "校验组件", "component", "IP校验&安全检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
-Boundary_End()
-
+System(rocketmq,"MQ")
+System(auditSystem,"审核系统")
+System(job,"任务中间件系统")
 Container_Boundary(postService, "投稿服务")
-    Component(uploadComponent, "上传组件", "component", "上传令牌服务")
+    Component(auditComponent, "送审组件", "component", "内容送审")
 Boundary_End()
-System(security,"风控系统")
-System(userSystem,"用户系统")
+
+System(messageSystem,"消息系统")
 ComponentDb(db, "投稿数据库", "Mysql")
 
-Rel(gateway, checkComponent, "IP过滤")
-Rel(checkComponent, security, "获取规则")
-Rel(security,checkComponent, "返回")
-Rel(checkComponent, authComponent, "权限控制")
-Rel(authComponent, userSystem, "实名认证&权限获取")
-Rel(userSystem,authComponent, "返回")
-Rel(authComponent, uploadComponent, "上传请求")
-Rel(uploadComponent, uploadComponent, "配置获取用户\nBucket生成文件名")
-Rel(uploadComponent, db, "存储记录")
-Rel(db, uploadComponent, "返回")
-System(objectStorage, "对象存储")
-Rel(uploadComponent, objectStorage, "获取StsToken")
-Rel(objectStorage, uploadComponent, "返回")
-Rel(uploadComponent, authComponent, "返回")
-Rel(authComponent, gateway, "返回")
-Rel(gateway, user, "返回")
-Rel(user, objectStorage, "上传文件")
-Rel(objectStorage, user, "上传完成")
-Rel(user, gateway, "请求")
-Rel(gateway, gateway, "用户身份验证")
-Rel(gateway, checkComponent, "上传完成验证")
-Rel(checkComponent, uploadComponent, "上传完成验证")
-Rel(uploadComponent, objectStorage, "获取文件是否存在\nCRC64是否正确")
-Rel(objectStorage, uploadComponent, "返回")
-Rel(uploadComponent, db, "修改上传状态")
-Rel(db, uploadComponent, "返回")
-Rel(uploadComponent, authComponent, "返回")
-Rel(authComponent, gateway, "返回")
-Rel(gateway, user, "返回")
+== 送审 ==
+Rel(rocketmq, auditComponent, "接收到数据库变更消息")
+Rel(auditComponent, auditComponent, "查看状态")
+alt 状态是待送审
+ Rel(auditComponent, auditSystem, "调用审核系统API")
+ Rel(auditSystem, auditComponent, "返回")
+ Rel(auditComponent,db , "修改状态&存储相关审核信息")
+ Rel(db,auditComponent , "返回")
+end
+Rel(auditComponent,rocketmq , "完成处理")
+
+== 审核处理 ==
+Rel(auditSystem, auditComponent, "审核完成")
+Rel(auditComponent, db, "修改数据库&记录信息")
+Rel(db,auditComponent , "返回")
+Rel(auditComponent,auditSystem , "完成处理")
 
 
+== 审核后处理 ==
+Rel(rocketmq, auditComponent, "接收审核后信息")
+Rel(auditComponent, auditComponent, "查看状态")
+alt 状态是审核未通过
+ Rel(auditComponent, messageSystem, "发送审核未通过消息")
+ Rel(messageSystem, auditComponent, "返回")
+end
+Rel(auditComponent,rocketmq , "完成处理")
 
 
+== 兜底处理 ==
+Rel(job, auditComponent, "每30分钟扫描")
+Rel(auditComponent, auditComponent, "查看状态")
+alt 状态是待送审
+ Rel(auditComponent, auditComponent, "送审逻辑")
+else 状态是已送审&30分钟无结果
+ Rel(auditComponent, auditSystem, "查询状态")
+ Rel(auditSystem, auditComponent, "返回")
+end
+Rel(auditComponent,job , "完成处理")
 
 
 @enduml
