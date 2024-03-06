@@ -13,16 +13,16 @@ System_Boundary(relationProduction, "关系"){
           Container(relationWriteService, "关系服务","Spring-boot")
           ContainerDb(relationDatabase, "关系/统计库", "表格存储")
           ContainerQueue(relationQueue, "队列", "RocketMq")
-          Rel_L(relationFacade, relationReadService, "调用")
+          Rel(relationFacade, relationReadService, "调用")
           Rel(relationFacade, relationWriteService, "调用")
           Rel(relationReadService, relationDatabase, "调用")
           Rel(relationWriteService, relationDatabase, "调用")
-          Rel_L(relationDatabase, relationQueue, "调用")
+          Rel_R(relationDatabase, relationQueue, "调用")
           Rel(relationWriteService, relationQueue, "调用")
 
     }
-    System_Boundary(followBoundary, "关注系统") {
-           System(follow, "关注系统")
+    System_Boundary(followBoundary, "关注读系统") {
+           System(follow, "关注读系统")
     }
     System_Boundary(relationClientBoundary, "客户端") {
           Container(relationClient, "关系客户端","jar")
@@ -37,14 +37,15 @@ System_Ext(userSystem,"用户系统")
 
 Rel_R(user, gateway, "关注/点赞/收藏")
 Rel(gateway, relationFacade, "关注/点赞/收藏")
-Rel_R(relationFacade, security, "安全检查")
-Rel(relationFacade, userSystem, "权限校验")
-Rel_R(relationWriteService, userSystem, "用户校验")
+
+
+
 Rel_R(follow,relationBoundary, "依赖")
 Rel_U(relationClient,relationBoundary, "调用")
 Rel_U(relationClient,follow, "调用")
 Rel(feed,relationClient, "调用")
 
-
+Rel(relationProduction, security, "安全检查")
+Rel(relationProduction, userSystem, "用户校验")
 
 @enduml
