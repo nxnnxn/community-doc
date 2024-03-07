@@ -24,7 +24,6 @@ Boundary(fenfa,"分发"){
 }
 
 
-Boundary(basedomain,"基础领域"){
 Boundary(content,"内容"){
    Boundary(contentProduction, "内容生产"){
      System(media_process, "处理")
@@ -68,18 +67,18 @@ Boundary(user,"用户"){
      System(zhuce, "注册")
      System(userBase, "信息")
      System(jubao, "举报")
-     Lay_U(userBase, zhuce)
-     Lay_D(userBase, jubao)
+     Lay_L(userBase, zhuce)
+     Lay_R(userBase, jubao)
   }
 
   Boundary(userRight, "用户权益"){
      System(jifen, "积分")
      System(dengji, "等级")
      System(task, "任务")
-     Lay_U(task, jifen)
-     Lay_D(task, dengji)
+     Lay_L(task, jifen)
+     Lay_R(task, dengji)
   }
-  Lay_R(base, userRight)
+  Lay_D(base, userRight)
 }
 
 
@@ -100,7 +99,6 @@ Boundary(touch,"触达"){
      Lay_R(share, out)
   }
   Lay_D(inTouch, outTouch)
-}
 }
 Lay_D(fenfa,contentProduction)
 
@@ -126,9 +124,41 @@ Boundary(shangyehua,"商业化"){
   Lay_R(guanggao, ecommerce)
 }
 
-Lay_D(shangyehua,basedomain)
+
+Lay_R(fenfa,shangyehua)
+
+Lay_D(fenfa,contentProduction)
+Lay_D(fenfa,interact)
+Lay_D(fenfa,user)
+Lay_D(fenfa,touch)
 
 
+Lay_D(shangyehua,contentProduction)
+Lay_D(shangyehua,interact)
+Lay_D(shangyehua,user)
+Lay_D(shangyehua,touch)
+
+Boundary(middle,"中间件"){
+   Boundary(middleSoft, "中间件"){
+       System(shardingJdbc, "Jdbc")
+       System(DTS, "DTS")
+       System(RocketMq, "RocketMq")
+       Lay_U(shardingJdbc, DTS)
+       Lay_D(shardingJdbc, RocketMq)
+     }
+
+   Boundary(chunchu, "存储"){
+       System(redis, "redis")
+        System(ODPS, "ODPS")
+        System(DII, "DII")
+        Lay_U(redis, ODPS)
+        Lay_D(redis, DII)
+    }
+   Lay_R(middleSoft, chunchu)
+}
+
+
+Lay_R(shangyehua,middle)
 
 
 
