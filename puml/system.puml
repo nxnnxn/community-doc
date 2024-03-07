@@ -1,0 +1,138 @@
+@startuml
+!include <C4/C4_Context>
+HIDE_STEREOTYPE()
+
+title 短视频社区
+
+Boundary(fenfa,"分发"){
+   Boundary(searchAndRec, "搜推"){
+     System(search, "搜索")
+     System(rec, "推荐")
+     System(data, "数据工程")
+     Lay_L(data, search)
+     Lay_R(data, rec)
+  }
+
+  Boundary(feed, "feed"){
+     System(quanren, "圈人")
+     System(xuanpin, "选品")
+     System(dajian, "搭建")
+     Lay_L(dajian, quanren)
+     Lay_R(dajian, xuanpin)
+  }
+  Lay_R(searchAndRec, feed)
+}
+
+
+Boundary(basedomain,"基础领域"){
+Boundary(content,"内容"){
+   Boundary(contentProduction, "内容生产"){
+     System(media_process, "处理")
+     System(post, "投稿")
+     System(postTool, "工具")
+     Lay_L(post, media_process)
+     Lay_R(post, postTool)
+  }
+
+  Boundary(contentPlay, "内容播放"){
+     System(videoPlay, "播放")
+     System(videoCon, "播控")
+     System(videoTest, "播放")
+     Lay_L(videoCon, videoPlay)
+     Lay_R(videoCon, videoTest)
+  }
+  Lay_D(contentProduction, contentPlay)
+}
+
+Boundary(interact,"消费"){
+   Boundary(relationInteract, "关系互动"){
+     System(follow, "关注")
+     System(praise, "点赞")
+     System(collect, "收藏")
+     Lay_L(follow, praise)
+     Lay_R(follow, collect)
+  }
+
+  Boundary(contentInteract, "内容互动"){
+     System(comment, "评论")
+     System(bullentComment, "弹幕")
+     System(topic, "话题")
+     Lay_L(topic, comment)
+     Lay_R(topic, bullentComment)
+  }
+  Lay_D(relationInteract, contentInteract)
+}
+
+Boundary(user,"用户"){
+   Boundary(base, "基础"){
+     System(zhuce, "注册")
+     System(userBase, "信息")
+     System(jubao, "举报")
+     Lay_U(userBase, zhuce)
+     Lay_D(userBase, jubao)
+  }
+
+  Boundary(userRight, "用户权益"){
+     System(jifen, "积分")
+     System(dengji, "等级")
+     System(task, "任务")
+     Lay_U(task, jifen)
+     Lay_D(task, dengji)
+  }
+  Lay_R(base, userRight)
+}
+
+
+Boundary(touch,"触达"){
+   Boundary(inTouch, "站内触达"){
+     System(message, "站内信")
+     System(push, "Push")
+     System(im, "IM")
+     Lay_L(im, message)
+     Lay_R(im, push)
+  }
+
+  Boundary(outTouch, "站外触达"){
+     System(share, "分享")
+     System(shortMessage, "短信")
+     System(out, "外合作")
+     Lay_L(share, shortMessage)
+     Lay_R(share, out)
+  }
+  Lay_D(inTouch, outTouch)
+}
+}
+Lay_D(fenfa,contentProduction)
+
+
+
+
+Boundary(shangyehua,"商业化"){
+   Boundary(guanggao, "广告"){
+     System(zhaoshang, "招商")
+     System(a, "AAAAA")
+     System(b, "BBBBB")
+     Lay_L(a, zhaoshang)
+     Lay_R(a, b)
+  }
+
+  Boundary(ecommerce, "电商"){
+     System(goods, "商品")
+     System(order, "订单")
+     System(trade, "交易")
+     Lay_L(order, goods)
+     Lay_R(order, trade)
+  }
+  Lay_R(guanggao, ecommerce)
+}
+
+Lay_D(shangyehua,basedomain)
+
+
+
+
+
+
+
+
+@enduml
