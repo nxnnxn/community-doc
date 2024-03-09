@@ -149,10 +149,10 @@ Boundary(support,"支撑域"){
 
    Boundary(tecSupport, "技术支撑"){
         System(redis, "redis")
-        System(odps, "ODPS")
-        System(es, "Es")
-        Lay_D(redis, odps)
-        Lay_D(odps, es)
+        System(rocketMq, "rocketMq")
+        System(dubbo, "dubbo")
+        Lay_D(redis, rocketMq)
+        Lay_D(rocketMq, dubbo)
     }
 }
 
