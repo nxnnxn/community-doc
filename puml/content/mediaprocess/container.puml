@@ -2,28 +2,36 @@
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
 
-title 投稿系统应用架构图
+title 媒体处理架构图
 
 Person(user, "用户")
 Person(user1, "运营")
-Person(user2, "安检")
+System("dts","任务驱动")
+System("fun","云服务函数计算")
+System("videoPaas","视频云PAAS")
 
 System_Boundary(contentProduction, "内容生产"){
+    System("postService","投稿系统")
     System_Boundary(mediaProcessBoundary, "媒体处理") {
-          Container(mediaProcessService, "媒体处理","Spring-boot")
-          Container(postService, "投稿服务","Spring-boot")
-          Container(postReadService, "帖子读服务","Spring-boot")
-          ContainerDb(postDatabase, "帖子数据库", "Mysql")
-          ContainerQueue(postQueue, "帖子队列", "RocketMq")
-
+          Container(mediaProcessService, "媒体处理元数据","Spring-boot")
+          Container(mediaProcessJoB, "媒体处理","Spring-boot")
+          ContainerDb(mediaProcessDatabase, "元数据库","mysql")
+          ContainerDb(mediaProcessJoBDatabase, "任务数据库")
+          ContainerQueue(mediaProcessQueue, "队列","RocketMQ")
+          Rel_L(mediaProcessJoB,mediaProcessService,"获取元数据")
+          Rel(mediaProcessJoB,mediaProcessJoBDatabase,"操作")
+          Rel(mediaProcessService,mediaProcessDatabase,"操作")
+          Rel(mediaProcessJoB,mediaProcessQueue,"发布&订阅")
    }
+   Rel(dts,mediaProcessJoB,"驱动")
+
 }
 
-System_Ext("dts","任务驱动")
-
-
-
-
+Rel_L(mediaProcessService,user1,"配置")
+Rel(postService,mediaProcessJoB,"发起")
+Rel(user,postService,"发起")
+BiRel_R(mediaProcessBoundary,videoPaas,"SDK&Queue")
+BiRel(mediaProcessBoundary,fun,"SDK&Queue")
 
 
 @enduml

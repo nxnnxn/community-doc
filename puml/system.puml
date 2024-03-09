@@ -26,7 +26,7 @@ Boundary(fenfa,"分发"){
 
 Boundary(content,"内容"){
    Boundary(contentProduction, "内容生产"){
-     System(media_process, "处理")
+     System(media_process, "媒体处理")
      System(post, "投稿")
      System(postTool, "工具")
      Lay_L(post, media_process)
@@ -34,11 +34,11 @@ Boundary(content,"内容"){
   }
 
   Boundary(contentPlay, "内容播放"){
+     System(videoTest, "云控调度")
      System(videoPlay, "播放")
      System(videoCon, "播控")
-     System(videoTest, "播放")
-     Lay_L(videoCon, videoPlay)
-     Lay_R(videoCon, videoTest)
+     Lay_L(videoCon, videoTest)
+     Lay_R(videoCon, videoPlay)
   }
   Lay_D(contentProduction, contentPlay)
 }
@@ -138,27 +138,25 @@ Lay_D(shangyehua,interact)
 Lay_D(shangyehua,user)
 Lay_D(shangyehua,touch)
 
-Boundary(middle,"中间件"){
-   Boundary(middleSoft, "中间件"){
-       System(shardingJdbc, "Jdbc")
-       System(DTS, "DTS")
-       System(RocketMq, "RocketMq")
-       Lay_U(shardingJdbc, DTS)
-       Lay_D(shardingJdbc, RocketMq)
+Boundary(support,"支撑域"){
+   Boundary(businessSupport, "业务支撑"){
+       System(audit, "安检")
+       System(keshu, "客诉")
+       System(huodong, "活动")
+       Lay_U(audit, keshu)
+       Lay_D(audit, huodong)
      }
 
-   Boundary(chunchu, "存储"){
-       System(redis, "redis")
-        System(ODPS, "ODPS")
-        System(DII, "DII")
-        Lay_U(redis, ODPS)
-        Lay_D(redis, DII)
+   Boundary(tecSupport, "技术支撑"){
+        System(redis, "redis")
+        System(odps, "ODPS")
+        System(es, "Es")
+        Lay_D(redis, odps)
+        Lay_D(odps, es)
     }
-   Lay_R(middleSoft, chunchu)
 }
 
 
-Lay_R(shangyehua,middle)
 
 
 
