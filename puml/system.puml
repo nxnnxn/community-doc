@@ -67,18 +67,15 @@ Boundary(user,"用户"){
      System(zhuce, "注册")
      System(userBase, "信息")
      System(jubao, "举报")
-     Lay_L(userBase, zhuce)
-     Lay_R(userBase, jubao)
+     System(jingbi, "禁闭")
   }
 
   Boundary(userRight, "用户权益"){
      System(jifen, "积分")
      System(dengji, "等级")
      System(task, "任务")
-     Lay_L(task, jifen)
-     Lay_R(task, dengji)
   }
-  Lay_D(base, userRight)
+  Lay_R(base, userRight)
 }
 
 

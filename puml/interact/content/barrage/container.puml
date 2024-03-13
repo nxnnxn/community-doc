@@ -31,8 +31,8 @@ System_Boundary(contentInteraction, "内容互动"){
 }
 
 System_Ext(security,"风控系统")
-System_Ext(userSystem,"用户系统")
-System_Ext(community, "社区系统")
+System_Ext(userSystem,"认证系统")
+System_Ext(forbidden, "禁闭系统")
 System_Ext(audit, "审核系统")
 System_Ext(message, "消息系统")
 System_Ext(video, "媒体系统")
@@ -49,7 +49,7 @@ Rel(user1,interactAdmin, "运营")
 
 Rel(barrageFacade, security, "安全规则")
 Rel(barrageFacade, userSystem, "用户认证&权限")
-Rel(barrageService, community, "获取社区信息")
+Rel(barrageService, forbidden, "获取禁闭列表")
 Rel(barrageService, message, "发布消息")
 Rel(barrageService, audit, "发起审核")
 Rel(barrageService, video, "获取媒体信息")
