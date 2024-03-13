@@ -1,0 +1,67 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+
+title 弹幕应用架构图
+
+Person(user, "用户")
+Person(user1, "运营")
+Person(user2, "安检")
+
+System_Boundary(contentInteraction, "内容互动"){
+    Container_Boundary(barrageBoundary, "弹幕") {
+          Container(barrageFacade, "弹幕应用","Spring-boot")
+          Container(barrageService, "弹幕服务","Spring-boot")
+          ContainerDb(barrageDatabase, "弹幕数据库", "Mysql")
+          ContainerQueue(barrageQueue, "弹幕队列", "RocketMq")
+          Rel(barrageFacade, barrageService, "调用")
+          Rel_R(barrageService, barrageDatabase, "保存")
+          Rel_L(barrageService, barrageQueue, "发送")
+    }
+
+    Container_Boundary(InteractCommonBoundary, "互动通用"){
+        Container(interactAdmin, "互动后台","Spring-boot")
+        Container(interactRecService, "互动推荐","Spring-boot")
+        Lay_D(interactAdmin,interactRecService)
+    }
+
+    Rel(interactAdmin, barrageService, "调用")
+    Rel(interactRecService, barrageService, "调用")
+    Rel(barrageQueue,interactRecService, "调用")
+}
+
+System_Ext(security,"风控系统")
+System_Ext(userSystem,"用户系统")
+System_Ext(community, "社区系统")
+System_Ext(audit, "审核系统")
+System_Ext(message, "消息系统")
+System_Ext(video, "媒体系统")
+System_Ext(gateway,"网关系统")
+System_Ext(CDN,"CDN")
+System(relation, "关系系统")
+
+
+Rel(user, gateway, "发&看弹幕")
+Rel(user, CDN, "看弹幕")
+Rel(gateway, barrageFacade, "发&看弹幕")
+Rel(CDN, barrageFacade, "回源")
+Rel(user1,interactAdmin, "运营")
+
+Rel(barrageFacade, security, "安全规则")
+Rel(barrageFacade, userSystem, "用户认证&权限")
+Rel(barrageService, community, "获取社区信息")
+Rel(barrageService, message, "发布消息")
+Rel(barrageService, audit, "发起审核")
+Rel(barrageService, video, "获取媒体信息")
+Rel(barrageService, relation, "点赞")
+Rel_U(user2, audit, "审核")
+
+
+
+
+
+
+
+@enduml
+
+

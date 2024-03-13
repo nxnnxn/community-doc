@@ -1,0 +1,41 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+
+title 内容生产系统架构图
+
+Person(user, "用户")
+Person(user1, "运营")
+Person(user2, "安检")
+
+System_Boundary(commentProduction, "内容生产"){
+     System(media_process, "媒体处理")
+     System(post, "投稿系统")
+     System(postTool, "工具系统")
+     Rel_L(post, media_process, "转码")
+     Rel_R(post, postTool, "工具")
+}
+
+System_Ext(security,"风控系统")
+System_Ext(userSystem,"用户系统")
+System_Ext(community, "社区系统")
+System_Ext(audit, "审核系统")
+System_Ext(message, "消息系统")
+System_Ext(play, "播放系统")
+Rel(user, post, "发帖&生产工具")
+Rel(user1,post, "运营")
+
+Rel(post, security, "安全规则")
+Rel(post, userSystem, "用户认证&权限")
+Rel(post, community, "获取社区信息")
+Rel(post, message, "发布消息")
+Rel(post, audit, "发起审核")
+Rel_U(user2, audit, "审核")
+
+
+
+Rel_U(play, post, "获取地址")
+
+
+
+@enduml

@@ -13,8 +13,8 @@ System_Boundary(contentProduction, "内容生产"){
      System(media_process, "媒体处理")
      System(post, "投稿系统")
      System(postTool, "工具系统")
-     Rel(post, media_process, "媒体处理")
-     Rel_R(post, postTool, "工具")
+     Rel_R(post, media_process, "媒体处理")
+     Rel_L(post, postTool, "工具")
 }
 Rel(user,post,"发布")
 Rel(user1,media_process,"发布")
