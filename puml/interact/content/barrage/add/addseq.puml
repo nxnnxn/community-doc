@@ -51,14 +51,9 @@ Rel(gateway, user, "返回")
 
 == profile更新 ==
 Rel(rocketmq, profileComponent, "监听到变更")
-alt redis10分钟幂未通过
-Rel(profileComponent, rocketmq, "返回")
-end
-alt 弹幕状态变更从未审核变成审核通过
-  Rel(profileComponent, statComponent, "对分钟列进行+")
-  Rel(statComponent, profileComponent, "数据库返回")
-else 弹幕状态变更从审核通过变成未通过
-  Rel(profileComponent, statComponent, "对分钟列进行-")
+Rel(profileComponent, profileComponent, "redis10分钟幂未通过,返回")
+alt 弹幕状态变更
+  Rel(profileComponent, statComponent, "对分钟列进行+-")
   Rel(statComponent, profileComponent, "数据库返回")
 end
 alt 分钟列如果小于10
@@ -72,15 +67,21 @@ Rel(profileComponent, rocketmq, "返回")
 
 == 计数器更新 ==
 Rel(rocketmq, barrageStatComponent, "监听到变更")
-alt redis10分钟幂未通过
-Rel(barrageStatComponent, rocketmq, "返回")
-end
-alt 弹幕状态变更从未审核变成审核通过
+Rel(barrageStatComponent, barrageStatComponent, "redis10分钟幂未通过,返回")
+alt 弹幕状态变更
   Rel(barrageStatComponent, db, "统计数据进行+")
-  Rel(db, barrageStatComponent, "数据库返回")
-else 弹幕状态变更从审核通过变成未通过
-  Rel(barrageStatComponent, db, "统计数据进行-")
   Rel(db, barrageStatComponent, "数据库返回")
 end
 Rel(barrageStatComponent, rocketmq, "完成更新")
+
+== 点赞数据更新 ==
+Rel(rocketmq, barrageComponent, "监听到变更")
+Rel(barrageComponent, barrageComponent, "redis10分钟幂未通过,返回")
+alt 点赞数据变化
+  Rel(barrageComponent, db, "更新相关数据库点赞表")
+  Rel(db, barrageComponent, "更新")
+  Rel(barrageComponent, redis, "更新缓存")
+  Rel(redis, barrageComponent, "更新")
+end
+Rel(barrageComponent, rocketmq, "完成更新")
 @enduml

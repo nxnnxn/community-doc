@@ -33,9 +33,7 @@ Rel(gateway, checkComponent, "发起请求")
 Rel(checkComponent, recComponent, "请求用户分组组件")
 Rel(recComponent, tpp, "请求用户分组组件")
 Rel(tpp, recComponent, "返回")
-alt 若出错或超时
-Rel(recComponent, recComponent, "默认用户分组")
-end
+Rel(recComponent, recComponent, "若出错或超时,默认用户分组")
 Rel(recComponent, checkComponent, "返回")
 Rel(checkComponent, userProfileComponent, "请求")
 
@@ -58,9 +56,7 @@ Rel(db, cacheComponent, "返回")
 Rel(cacheComponent, userProfileComponent, "返回")
 Rel(userProfileComponent, profileComponent, "获取视频打点数据")
 Rel(redis, profileComponent, "返回")
-alt 缓存数据不存在
-Rel(userProfileComponent, profileComponent, "根据配置默认打点")
-end
+Rel(userProfileComponent, profileComponent, "缓存数据不存在,配置默认打点")
 Rel(userProfileComponent, checkComponent, "返回")
 Rel(checkComponent, gateway, "返回")
 Rel(gateway, user, "返回")
@@ -72,31 +68,22 @@ Rel(gateway, checkComponent, "发起请求,校验参数")
 Rel(user, CDN, "请求")
 Rel(CDN, checkComponent, "HTTP回源,校验参数")
 Rel(checkComponent, recComponent, "请求")
-alt 是否携带用户分组
-Rel(recComponent, recComponent, "默认用户分组")
-end
+Rel(recComponent, recComponent, "若无默认分组,走默认")
 Rel(recComponent, facadeCacheComponent, "请求数据,若缓存有,直接返回")
 BiRel(facadeCacheComponent, tpp, "请求推荐系统")
 Rel(facadeCacheComponent, recComponent, "返回")
-alt 若请求超时或出错
-Rel(recComponent, recComponent, "默认用户分组")
-end
+Rel(recComponent, recComponent, "若请求超时或出错,走默认")
 alt 默认用户分组
  Rel(recComponent, listComponent, "直接请求列表接口")
  Rel(listComponent, redis, "获取列表IDs接口")
- alt 若不存在
- Rel(listComponent, db, "查询数据库")
- Rel(db, listComponent, "返回")
- Rel(listComponent, redis, "写回redis")
+ BiRel(redis, db, "若缓存没有直接DB")
  Rel(redis, listComponent, "返回")
- end
  Rel(listComponent, listComponent, "请求ByIds接口")
 else 非用户分组
  Rel(recComponent, listComponent, "请求ByIds接口")
 end
  Rel(listComponent, redis, "请求")
  BiRel(redis, db, "若缓存没有直接DB")
- Rel(redis, listComponent, "返回")
  Rel(redis, listComponent, "返回")
  Rel(listComponent, recComponent, "返回")
  Rel(recComponent, checkComponent, "返回")
@@ -107,17 +94,15 @@ end
 
 == 列表缓存更新 ==
 Rel(rocketmq, cacheComponent, "监听到变更")
-alt redis10分钟幂未通过
-Rel(cacheComponent, rocketmq, "返回")
-end
+Rel(cacheComponent, cacheComponent, "redis10分钟幂未通过,返回")
 alt 弹幕状态变更
   Rel(cacheComponent, redis, "更新弹幕列表缓存&新增单条记录缓存")
   Rel(redis, cacheComponent, "更新")
-alt 每隔1分钟裁剪列表缓存
+alt 是否每隔1分钟裁剪列表缓存
   Rel(cacheComponent, redis, "维持ZSET列表在合理长度")
   Rel(redis, cacheComponent, "更新")
 end
+end
 Rel(cacheComponent, rocketmq, "完成更新")
-
 SHOW_LEGEND()
 @enduml
