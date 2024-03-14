@@ -2,39 +2,37 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 
-title 投稿链路组件图
+title 关注/点赞/收藏查询组件图
 
 Person(user, "用户")
-System_Ext(gateway,"网关系统")
-Rel_R(user, gateway, "上传")
+System(gateway,"网关系统")
 
-Container_Boundary(postFacade, "投稿应用"){
-    Component(checkComponent, "校验组件", "component", "安全检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
-    Rel_R(gateway, checkComponent, "上传")
-    Rel(checkComponent, authComponent, "权限规则")
-}
+Rel_R(user, gateway, "请求")
 
-Container_Boundary(postService, "投稿服务"){
-    Component(uploadComponent, "上传组件", "component", "上传令牌服务")
-    Rel(authComponent, uploadComponent, "上传")
-}
-
-Container_Boundary(postJob, "投稿任务"){
-
+System_Boundary(feed, "Feed应用"){
+   Component(listFeedComponent, "关注/点赞列表组件", "component", "关注/点赞列表Feed")
+   Component(relationClientComponent, "关系客户端组件", "component", "关系客户端组件")
+   Rel_L(listFeedComponent, relationClientComponent, "本地客户端发起互动组件数据")
 }
 
 
+Container_Boundary(relationReadService, "关系读服务"){
+    Component(listComponent, "列表组件", "component", "列表组件")
+    Component(relationComponent, "关系组件", "component", "关系关注")
+    Component(statComponent, "计数器组件", "component", "计数器更新")
+ }
+ComponentDb(redis, "缓存", "redis")
+ComponentDb(db, "数据库", "表格数据库")
 
-System_Ext(security,"风控系统")
-System_Ext(userSystem,"用户系统")
-ContainerDb(db, "投稿数据库", "Mysql","上传记录")
+Rel(gateway,listFeedComponent,"请求")
+Rel(listFeedComponent, listComponent, "feed应用发起请求")
 
-Rel_R(authComponent, userSystem, "权限规则")
-
-
-
-
+Rel(relationClientComponent, relationComponent, "返回")
+Rel(relationClientComponent, redis, "查询缓存数据")
+Rel(relationClientComponent, statComponent, "返回")
+Rel(listComponent, db, "查询数据返回IDS")
+Rel(statComponent, db, "查询数据")
+Rel(relationComponent, db, "查询数据")
 
 
 

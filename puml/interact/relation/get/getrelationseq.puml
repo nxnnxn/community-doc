@@ -3,36 +3,63 @@
 SHOW_INDEX()
 SHOW_LEGEND()
 
-System(relationClient,"关系客户端")
+title 关注/点赞/收藏查询时序图
+== 获取列表 ==
 
-Container_Boundary(relationService, "关系服务")
+Person(user, "用户")
+System(gateway,"网关系统")
+
+Rel(user, gateway, "请求")
+Rel(gateway, gateway, "用户身份验证")
+
+System_Boundary(feed, "Feed应用")
+   Component(listFeedComponent, "关注/点赞列表组件", "component", "关注/点赞列表Feed")
+   Component(relationClientComponent, "关系客户端组件", "component", "关系客户端组件")
+Boundary_End()
+
+
+Container_Boundary(relationReadService, "关系读服务")
+    Component(listComponent, "列表组件", "component", "列表组件")
     Component(relationComponent, "关系组件", "component", "关系关注")
     Component(statComponent, "计数器组件", "component", "计数器更新")
 Boundary_End()
-ComponentDb(db, "数据库", "表格数据库")
 ComponentDb(redis, "缓存", "redis")
+ComponentDb(db, "数据库", "表格数据库")
 
-Rel(relationClient, statComponent, "获取相关计数")
-alt 未传入当前登陆用户
-Rel(statComponent, redis, "拼装布隆过滤器数据,查询存在判断缓存")
-Rel(redis, statComponent, "返回")
-alt 缓存返回数据标识有一些存在
-Rel(statComponent, redis, "拼装缓存数据,查询统计数据")
-Rel(redis, statComponent, "返回")
+
+Rel(gateway,listFeedComponent,"请求")
+Rel(listFeedComponent, listComponent, "feed应用发起请求")
+Rel(listComponent, db, "查询数据返回IDS")
+Rel(db, listComponent, "返回")
+Rel(db, listFeedComponent, "返回")
+
+== 本地客户端获取互动组件数据 ==
+Rel(listFeedComponent, relationClientComponent, "本地客户端发起互动组件数据")
+alt  当前传入当前登陆用户
+Rel(relationClientComponent, redis, "拼装布隆过滤器数据,查询存在判断缓存")
+Rel(redis, relationClientComponent, "返回")
+Rel(relationClientComponent, relationClientComponent, "若缓存数据显示都不存在,在直接返回")
+Rel(relationClientComponent, relationComponent, "一些数据存在,RPC请求查询")
+Rel(relationComponent, db, "查询数据")
+Rel(db, relationComponent, "返回数据")
+Rel(relationComponent, relationClientComponent, "返回")
+end
+
+Rel(relationClientComponent, redis, "拼装布隆过滤器数据,查询存在判断缓存")
+Rel(redis, relationClientComponent, "返回")
+Rel(relationClientComponent, relationClientComponent, "若缓存数据显示都不存在,在直接返回")
+Rel(relationClientComponent, redis, "拼装缓存数据,查询统计数据")
+Rel(redis, relationClientComponent, "返回")
 alt 缓存数据查询有一些不在
+Rel(relationClientComponent, statComponent, "RPC请求")
 Rel(statComponent, db, "查询数据库")
 Rel(db, statComponent, "返回")
+Rel(statComponent, relationClientComponent, "返回")
 end
-end
-else 传入当前登陆用户
-Rel(relationComponent, redis, "拼装布隆过滤器数据,查询存在判断缓存")
-Rel(redis, relationComponent, "返回")
-alt 缓存返回数据标识有一些存在
-Rel(relationComponent, db, "查询数据")
-end
-Rel(db, relationComponent, "返回数据")
-end
-Rel(statComponent, relationClient, "返回")
+== 获取列表 ==
+Rel(relationClientComponent, listFeedComponent, "返回")
+Rel(listFeedComponent, gateway, "返回")
+Rel(gateway, user, "返回")
 SHOW_LEGEND()
 @enduml
 

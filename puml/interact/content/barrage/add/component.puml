@@ -24,9 +24,9 @@ Container_Boundary(relationService, "关系统计服务"){
     Component(relationComponent, "关系组件", "component", "关系组件")
     Component(statComponent, "统计公共组件", "component", "统计公共组件")
 }
-System(security,"风控系统")
-System(userSystem,"用户系统")
-System(videoSystem,"视频系统")
+System_Ext(security,"风控系统")
+System_Ext(userSystem,"用户系统")
+System_Ext(videoSystem,"视频系统")
 System(rocketmq,"MQ")
 System(redis,"缓存","redis")
 ComponentDb(db, "数据库", "Mysql")

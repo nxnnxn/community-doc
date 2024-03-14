@@ -2,37 +2,44 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 
-title 关注/点赞/收藏链路组件图
+title 关注/点赞/收藏新增组件图
 
 Person(user, "用户")
-System_Ext(gateway,"网关系统")
-Rel_R(user, gateway, "点赞/取消点赞")
+System(gateway,"网关系统")
 
 Container_Boundary(relationFacade, "关系应用"){
-    Component(checkComponent, "校验组件", "component", "检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
-    Rel_R(gateway, checkComponent, "点赞/取消点赞")
-    Rel(checkComponent, authComponent, "权限规则")
+    Component(checkComponent, "校验组件", "component", "IP校验&安全检验")
 }
 
 Container_Boundary(relationService, "关系服务"){
-    Component(relationComponent, "组件", "component", "上传令牌服务")
-    Rel(authComponent, uploadComponent, "上传")
+    Component(relationComponent, "关系组件", "component", "关系关注")
+    Component(statComponent, "计数器组件", "component", "计数器更新")
 }
-
-
-
 System_Ext(security,"风控系统")
-System_Ext(video,"投稿系统")
 System_Ext(userSystem,"用户系统")
-
-Rel_R(checkComponent, security, "安全规则校验")
-Rel(checkComponent, video, "视频信息校验")
-Rel(authComponent, userSystem, "权限规则")
-
-
+System_Ext(videoSystem,"视频系统")
+System(rocketmq,"MQ")
+ComponentDb(db, "数据库", "表格数据库")
+ComponentDb(redis, "缓存", "redis")
 
 
+Rel_R(user, gateway, "关注/点赞/收藏")
+Rel(gateway, checkComponent, "关注/点赞/收藏")
+Rel(checkComponent, security, "安全风控")
+Rel(checkComponent, userSystem, "用户信息获取")
+Rel(checkComponent, videoSystem, "视频信息获取")
+
+Rel(checkComponent, relationComponent, "请求")
+
+Rel(relationComponent, db, "操作数据库")
+Rel(statComponent, db, "操作数据库")
+
+Rel(relationComponent, redis, "操作缓存")
+Rel(statComponent, redis, "操作缓存")
+
+Rel_L(db, rocketmq, "消息投递")
+
+Rel(rocketmq, statComponent, "消息消费")
 
 
 

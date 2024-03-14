@@ -3,6 +3,7 @@
 SHOW_INDEX()
 SHOW_LEGEND()
 
+title 关注/点赞/收藏新增时序图
 Person(user, "用户")
 System(gateway,"网关系统")
 
@@ -11,16 +12,15 @@ Rel(gateway, gateway, "用户身份验证")
 
 Container_Boundary(relationFacade, "关系应用")
     Component(checkComponent, "校验组件", "component", "IP校验&安全检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
 Boundary_End()
 
 Container_Boundary(relationService, "关系服务")
     Component(relationComponent, "关系组件", "component", "关系关注")
     Component(statComponent, "计数器组件", "component", "计数器更新")
 Boundary_End()
-System(security,"风控系统")
-System(userSystem,"用户系统")
-System(videoSystem,"视频系统")
+System_Ext(security,"风控系统")
+System_Ext(userSystem,"用户系统")
+System_Ext(videoSystem,"视频系统")
 System(rocketmq,"MQ")
 ComponentDb(db, "数据库", "表格数据库")
 ComponentDb(redis, "缓存", "redis")
@@ -30,16 +30,15 @@ Rel(gateway, checkComponent, "发起请求")
 Rel(checkComponent, security, "获取规则")
 Rel(security,checkComponent, "IP校验&安全检验")
 
-Rel(checkComponent, authComponent, "权限控制")
-Rel(authComponent, userSystem, "用户信息获取")
-Rel(userSystem,authComponent, "实名认证&权限获取")
+Rel(checkComponent, userSystem, "用户信息获取")
+Rel(userSystem,checkComponent, "实名认证&权限获取")
 
 alt 若对象是视频
-Rel(authComponent, videoSystem, "视频信息获取")
-Rel(videoSystem,authComponent, "视频信息&权限判断")
+Rel(checkComponent, videoSystem, "视频信息获取")
+Rel(videoSystem,checkComponent, "视频信息&权限判断")
 end
 
-Rel(authComponent, relationComponent, "发起请求")
+Rel(checkComponent, relationComponent, "发起请求")
 Rel(relationComponent, db, "查询信息")
 Rel(db, relationComponent, "返回")
 alt 新增信息
@@ -54,8 +53,8 @@ end
 Rel(db, relationComponent, "返回")
 
 
-Rel(relationComponent, authComponent, "返回")
-Rel(authComponent, gateway, "返回")
+Rel(relationComponent, checkComponent, "返回")
+Rel(checkComponent, gateway, "返回")
 Rel(gateway, user, "返回")
 
 == 计数器更新 ==

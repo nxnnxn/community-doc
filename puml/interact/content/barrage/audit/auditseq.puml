@@ -15,8 +15,8 @@ Container_Boundary(barrageService, "弹幕服务")
     Component(barrageComponent, "弹幕服务组件", "component", "弹幕服务组件")
 Boundary_End()
 
-System(auditSystem,"审核系统")
-System(messageSystem,"消息系统")
+System_Ext(auditSystem,"审核系统")
+System_Ext(messageSystem,"消息系统")
 ComponentDb(db, "弹幕数据库", "Mysql")
 
 == 送审 ==

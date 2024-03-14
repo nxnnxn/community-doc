@@ -23,8 +23,8 @@ Container_Boundary(barrageService, "弹幕服务"){
    Component(listComponent, "弹幕列表组件", "component", "弹幕列表组件")
    Rel_L(userProfileComponent, profileComponent, "发起请求")
 }
-System(userSystem,"用户系统")
-System(videoSystem,"视频系统")
+System_Ext(userSystem,"用户系统")
+System_Ext(videoSystem,"视频系统")
 System(tpp,"推荐系统")
 System(rocketmq,"MQ")
 System(redis,"缓存","redis")
