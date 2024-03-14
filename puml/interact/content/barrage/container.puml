@@ -8,26 +8,28 @@ Person(user, "用户")
 Person(user1, "运营")
 Person(user2, "安检")
 
-System_Boundary(contentInteraction, "内容互动"){
+System_Boundary(interaction, "内容互动"){
     Container_Boundary(barrageBoundary, "弹幕") {
           Container(barrageFacade, "弹幕应用","Spring-boot")
           Container(barrageService, "弹幕服务","Spring-boot")
+          Container(barrageJobService, "弹幕任务服务","Spring-boot")
           ContainerDb(barrageDatabase, "弹幕数据库", "Mysql")
           ContainerQueue(barrageQueue, "弹幕队列", "RocketMq")
           Rel(barrageFacade, barrageService, "调用")
-          Rel_R(barrageService, barrageDatabase, "保存")
-          Rel_L(barrageService, barrageQueue, "发送")
+          Rel_L(barrageService, barrageDatabase, "保存")
+          Rel(barrageService, barrageQueue, "发送")
+          Rel(barrageJobService, barrageService, "调用")
+          Rel_R(barrageQueue, barrageJobService, "消息接收")
     }
 
     Container_Boundary(InteractCommonBoundary, "互动通用"){
         Container(interactAdmin, "互动后台","Spring-boot")
-        Container(interactRecService, "互动推荐","Spring-boot")
-        Lay_D(interactAdmin,interactRecService)
     }
+     System_Boundary(relationBoundary, "关系互动"){
+             System(relation, "关系系统")
+     }
 
-    Rel(interactAdmin, barrageService, "调用")
-    Rel(interactRecService, barrageService, "调用")
-    Rel(barrageQueue,interactRecService, "调用")
+    Rel_R(interactAdmin, barrageService, "调用")
 }
 
 System_Ext(security,"风控系统")
@@ -38,7 +40,8 @@ System_Ext(message, "消息系统")
 System_Ext(video, "媒体系统")
 System_Ext(gateway,"网关系统")
 System_Ext(CDN,"CDN")
-System(relation, "关系系统")
+System_Ext(oss,"对象存储")
+
 
 
 Rel(user, gateway, "发&看弹幕")
@@ -49,12 +52,13 @@ Rel(user1,interactAdmin, "运营")
 
 Rel(barrageFacade, security, "安全规则")
 Rel(barrageFacade, userSystem, "用户认证&权限")
-Rel(barrageService, forbidden, "获取禁闭列表")
-Rel(barrageService, message, "发布消息")
-Rel(barrageService, audit, "发起审核")
+Rel(barrageFacade, forbidden, "获取禁闭列表")
+Rel(barrageJobService, message, "发布消息")
+Rel(barrageJobService, audit, "发起审核")
+Rel(barrageJobService, oss, "保存文件")
 Rel(barrageService, video, "获取媒体信息")
 Rel(barrageService, relation, "点赞")
-Rel_U(user2, audit, "审核")
+Rel_R(user2, audit, "审核")
 
 
 

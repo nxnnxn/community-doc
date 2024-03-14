@@ -5,93 +5,119 @@ SHOW_LEGEND()
 
 Person(user, "用户")
 System(gateway,"网关系统")
+System(CDN,"CDN")
 
-Rel(user, gateway, "请求")
-Rel(gateway, gateway, "用户身份验证")
-
-Container_Boundary(relationFacade, "关系应用")
-    Component(checkComponent, "校验组件", "component", "IP校验&安全检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
+Container_Boundary(barrageFacade, "弹幕应用")
+    Component(checkComponent, "校验组件", "component", "参数校验")
+    Component(recComponent, "推荐组件", "component", "分组组件")
+    Component(facadeCacheComponent, "前台缓存组件", "component", "缓存组件")
 Boundary_End()
 
-Container_Boundary(relationService, "关系服务")
-    Component(relationComponent, "关系组件", "component", "关系关注")
-    Component(statComponent, "计数器组件", "component", "计数器更新")
+Container_Boundary(barrageService, "弹幕服务")
+    Component(userProfileComponent, "用户配置组件", "component", "用户配置组件")
+    Component(cacheComponent, "弹幕缓存组件", "component", "缓存组件")
+    Component(profileComponent, "视频打点组件", "component", "视频打点组件")
+    Component(listComponent, "弹幕列表组件", "component", "弹幕列表组件")
 Boundary_End()
-System(security,"风控系统")
+System(tpp,"推荐系统")
 System(userSystem,"用户系统")
 System(videoSystem,"视频系统")
 System(rocketmq,"MQ")
-ComponentDb(db, "数据库", "表格数据库")
-ComponentDb(redis, "缓存", "redis")
+System(redis,"缓存","redis")
+ComponentDb(db, "数据库", "Mysql")
 
+== 用户profile ==
+Rel(user, gateway, "请求")
+Rel(gateway, gateway, "用户身份验证")
 Rel(gateway, checkComponent, "发起请求")
-
-Rel(checkComponent, security, "获取规则")
-Rel(security,checkComponent, "IP校验&安全检验")
-
-Rel(checkComponent, authComponent, "权限控制")
-Rel(authComponent, userSystem, "用户信息获取")
-Rel(userSystem,authComponent, "实名认证&权限获取")
-
-alt 若对象是视频
-Rel(authComponent, videoSystem, "视频信息获取")
-Rel(videoSystem,authComponent, "视频信息&权限判断")
+Rel(checkComponent, recComponent, "请求用户分组组件")
+Rel(recComponent, tpp, "请求用户分组组件")
+Rel(tpp, recComponent, "返回")
+alt 若出错或超时
+Rel(recComponent, recComponent, "默认用户分组")
 end
+Rel(recComponent, checkComponent, "返回")
+Rel(checkComponent, userProfileComponent, "请求")
 
-Rel(authComponent, relationComponent, "发起请求")
-Rel(relationComponent, db, "查询信息")
-Rel(db, relationComponent, "返回")
-alt 新增信息
-alt 若信息不存在
-Rel(relationComponent, db, "插入DB")
-end
-else 删除信息
-alt 若信息存在
-Rel(relationComponent,db , "删除DB")
-end
-end
-Rel(db, relationComponent, "返回")
+Rel(userProfileComponent, cacheComponent, "请求")
+Rel(cacheComponent, videoSystem, "获取视频信息，先缓存再服务")
+BiRel(cacheComponent, redis, "请求缓存")
+Rel(videoSystem, cacheComponent, "返回")
 
 
-Rel(relationComponent, authComponent, "返回")
-Rel(authComponent, gateway, "返回")
+Rel(userProfileComponent, userProfileComponent, "检查视频支持弹幕?")
+Rel(userProfileComponent, cacheComponent, "请求")
+Rel(cacheComponent, userSystem, "获取用户是否禁言,先缓存再服务")
+BiRel(cacheComponent, redis, "请求缓存")
+Rel(userSystem, cacheComponent, "返回")
+Rel(cacheComponent, userProfileComponent, "返回")
+Rel(userProfileComponent, cacheComponent, "请求")
+Rel(cacheComponent, db, "获取用户是否禁言,先缓存再DB")
+BiRel(cacheComponent, redis, "请求缓存")
+Rel(db, cacheComponent, "返回")
+Rel(cacheComponent, userProfileComponent, "返回")
+Rel(userProfileComponent, profileComponent, "获取视频打点数据")
+Rel(redis, profileComponent, "返回")
+alt 缓存数据不存在
+Rel(userProfileComponent, profileComponent, "根据配置默认打点")
+end
+Rel(userProfileComponent, checkComponent, "返回")
+Rel(checkComponent, gateway, "返回")
 Rel(gateway, user, "返回")
 
-== 计数器更新 ==
-Rel(rocketmq, statComponent, "监听到变更")
-alt redis10分钟幂等校验通过
-Rel(statComponent, statComponent, "统计策略选择")
-alt 接入类型没有详情
-  Rel(statComponent, db, "对相关列进行+-")
-else 有detail&小于10000&上次count时间小于特定值
-  Rel(statComponent, db, "对相关列进行+-")
-else  有detail&&小于10000&上次count时间大与特定值
-  Rel(statComponent, db, "对数据调用详情数据进行count")
-else 其他
-   Rel(statComponent, db, "对相关列进行+-")
-end
-Rel(db, statComponent, "数据库返回")
-end
-Rel(statComponent, rocketmq, "完成更新")
 
-== 计数器缓存更新 ==
-Rel(rocketmq, statComponent, "监听到变更")
-alt redis10分钟幂等校验通过
-Rel(statComponent, statComponent, "更新策略选择")
-alt 统计数小于10000
-  Rel(statComponent, redis, "每列变化都主动更新缓存")
-else 统计数>10000
-  Rel(statComponent, redis, "每取模1000在0-100上次更新一次")
-else  其他列更新
-  Rel(statComponent, redis, "对库里所有数据更新一次")
+== 弹幕列表 ==
+Rel(user, gateway, "请求")
+Rel(gateway, checkComponent, "发起请求,校验参数")
+Rel(user, CDN, "请求")
+Rel(CDN, checkComponent, "HTTP回源,校验参数")
+Rel(checkComponent, recComponent, "请求")
+alt 是否携带用户分组
+Rel(recComponent, recComponent, "默认用户分组")
 end
-Rel(redis, statComponent, "数据库返回")
+Rel(recComponent, facadeCacheComponent, "请求数据,若缓存有,直接返回")
+BiRel(facadeCacheComponent, tpp, "请求推荐系统")
+Rel(facadeCacheComponent, recComponent, "返回")
+alt 若请求超时或出错
+Rel(recComponent, recComponent, "默认用户分组")
 end
-Rel(statComponent, rocketmq, "完成更新")
-== 详情缓存更新 ==
-Rel(rocketmq, relationComponent, "监听到变更")
-Rel(relationComponent, redis, "更新布隆过滤器")
-Rel(redis, relationComponent, "返回")
+alt 默认用户分组
+ Rel(recComponent, listComponent, "直接请求列表接口")
+ Rel(listComponent, redis, "获取列表IDs接口")
+ alt 若不存在
+ Rel(listComponent, db, "查询数据库")
+ Rel(db, listComponent, "返回")
+ Rel(listComponent, redis, "写回redis")
+ Rel(redis, listComponent, "返回")
+ end
+ Rel(listComponent, listComponent, "请求ByIds接口")
+else 非用户分组
+ Rel(recComponent, listComponent, "请求ByIds接口")
+end
+ Rel(listComponent, redis, "请求")
+ BiRel(redis, db, "若缓存没有直接DB")
+ Rel(redis, listComponent, "返回")
+ Rel(redis, listComponent, "返回")
+ Rel(listComponent, recComponent, "返回")
+ Rel(recComponent, checkComponent, "返回")
+ Rel(checkComponent, gateway, "返回")
+ Rel(gateway, user, "返回")
+ Rel(checkComponent, CDN, "返回")
+ Rel(CDN, user, "返回")
+
+== 列表缓存更新 ==
+Rel(rocketmq, cacheComponent, "监听到变更")
+alt redis10分钟幂未通过
+Rel(cacheComponent, rocketmq, "返回")
+end
+alt 弹幕状态变更
+  Rel(cacheComponent, redis, "更新弹幕列表缓存&新增单条记录缓存")
+  Rel(redis, cacheComponent, "更新")
+alt 每隔1分钟裁剪列表缓存
+  Rel(cacheComponent, redis, "维持ZSET列表在合理长度")
+  Rel(redis, cacheComponent, "更新")
+end
+Rel(cacheComponent, rocketmq, "完成更新")
+
 SHOW_LEGEND()
 @enduml
