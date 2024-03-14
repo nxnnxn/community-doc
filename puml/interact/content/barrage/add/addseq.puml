@@ -2,7 +2,7 @@
 !include <C4/C4_Sequence>
 SHOW_INDEX()
 SHOW_LEGEND()
-
+title 发送弹幕时序图
 Person(user, "用户")
 System(gateway,"网关系统")
 
@@ -10,15 +10,14 @@ Rel(user, gateway, "请求")
 Rel(gateway, gateway, "用户身份验证")
 
 Container_Boundary(barrageFacade, "弹幕应用")
-    Component(checkComponent, "校验组件", "component", "IP校验&安全检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
+    Component(checkComponent, "校验组件", "component", "检验权限组件")
+    Component(facadeCacheComponent, "前台缓存组件", "component", "缓存组件")
 Boundary_End()
 
 Container_Boundary(barrageService, "弹幕服务")
     Component(barrageComponent, "弹幕服务组件", "component", "弹幕服务组件")
     Component(profileComponent, "视频打点组件", "component", "视频打点组件")
     Component(barrageStatComponent, "弹幕统计组件", "component", "统计组件")
-    Component(cacheComponent, "弹幕缓存组件", "component", "缓存组件")
 Boundary_End()
 
 Container_Boundary(relationService, "关系统计服务")
@@ -34,19 +33,33 @@ ComponentDb(db, "数据库", "Mysql")
 Rel(gateway, checkComponent, "发起请求")
 
 Rel(checkComponent, security, "获取规则")
-Rel(security,checkComponent, "IP校验&安全检验不通过错误")
+Rel(security,checkComponent, "IP校验&安全检验不通过错误返回")
 
-Rel(checkComponent, videoSystem, "视频信息获取")
-Rel(videoSystem,checkComponent, "视频信息判断不通过错误")
-Rel(checkComponent, authComponent, "权限控制")
-Rel(authComponent, userSystem, "用户信息获取")
-Rel(userSystem,authComponent, "实名认证&是否禁闭不通过返回")
 
-Rel(authComponent, barrageComponent, "发起请求")
+Rel(checkComponent, facadeCacheComponent, "请求")
+Rel(facadeCacheComponent, videoSystem, "获取视频信息，先缓存再服务")
+BiRel(facadeCacheComponent, redis, "请求缓存")
+Rel(videoSystem, facadeCacheComponent, "返回")
+Rel(facadeCacheComponent, checkComponent, "返回")
+Rel(checkComponent, checkComponent, "检查视频支持弹幕?")
+
+
+Rel(checkComponent, userSystem, "用户信息获取")
+Rel(userSystem,checkComponent, "实名认证不通过直接返回")
+
+Rel(checkComponent, facadeCacheComponent, "请求")
+Rel(facadeCacheComponent, userSystem, "获取用户是否禁言,先缓存再服务")
+BiRel(facadeCacheComponent, redis, "请求缓存")
+Rel(userSystem, facadeCacheComponent, "返回")
+Rel(facadeCacheComponent, checkComponent, "返回")
+Rel(checkComponent, checkComponent, "检查用户是否禁言?")
+
+
+Rel(checkComponent, barrageComponent, "发起请求")
 Rel(barrageComponent, db, "保存数据")
 Rel(db, barrageComponent, "返回")
-Rel(barrageComponent, authComponent, "返回")
-Rel(authComponent, gateway, "返回")
+Rel(barrageComponent, checkComponent, "返回")
+Rel(checkComponent, gateway, "返回")
 Rel(gateway, user, "返回")
 
 == profile更新 ==
@@ -57,13 +70,10 @@ alt 弹幕状态变更
   Rel(statComponent, profileComponent, "数据库返回")
 end
 alt 分钟列如果小于10
-Rel(profileComponent, cacheComponent, "更新视频打点缓存")
-Rel(cacheComponent, redis, "更新缓存")
-Rel(redis, cacheComponent, "返回")
-Rel(cacheComponent, profileComponent, "返回")
+Rel(profileComponent, redis, "更新视频打点缓存")
+Rel(redis, profileComponent, "返回")
 end
 Rel(profileComponent, rocketmq, "返回")
-
 
 == 计数器更新 ==
 Rel(rocketmq, barrageStatComponent, "监听到变更")

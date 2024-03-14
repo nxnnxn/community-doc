@@ -2,41 +2,46 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 
-title 关注/点赞/收藏链路组件图
+title 弹幕列表组件图
 
 Person(user, "用户")
-System_Ext(gateway,"网关系统")
-Rel_R(user, gateway, "点赞/取消点赞")
+System(gateway,"网关系统")
+System(CDN,"CDN")
+Rel_L(user, gateway, "看弹幕")
+Rel_R(user, CDN, "看弹幕")
 
-Container_Boundary(relationFacade, "关系应用"){
-    Component(checkComponent, "校验组件", "component", "检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
-    Rel_R(gateway, checkComponent, "点赞/取消点赞")
-    Rel(checkComponent, authComponent, "权限规则")
+Container_Boundary(barrageFacade, "弹幕应用"){
+   Component(checkComponent, "校验组件", "component", "参数校验")
+   Component(recComponent, "推荐组件", "component", "分组组件")
+   Component(facadeCacheComponent, "前台缓存组件", "component", "缓存组件")
+   Rel_L(checkComponent, facadeCacheComponent, "发起请求")
+   Rel_R(checkComponent, recComponent, "发起请求")
 }
-
-Container_Boundary(relationService, "关系服务"){
-    Component(relationComponent, "组件", "component", "上传令牌服务")
-    Rel(authComponent, uploadComponent, "上传")
+Container_Boundary(barrageService, "弹幕服务"){
+   Component(userProfileComponent, "用户配置组件", "component", "用户配置组件")
+   Component(profileComponent, "视频打点组件", "component", "视频打点组件")
+   Component(listComponent, "弹幕列表组件", "component", "弹幕列表组件")
+   Rel_L(userProfileComponent, profileComponent, "发起请求")
 }
+System(userSystem,"用户系统")
+System(videoSystem,"视频系统")
+System(tpp,"推荐系统")
+System(rocketmq,"MQ")
+System(redis,"缓存","redis")
+ComponentDb(db, "数据库", "Mysql")
 
+Rel(gateway, checkComponent, "发起请求")
+Rel(CDN, checkComponent, "回源")
+Rel(facadeCacheComponent,videoSystem, "视频基础信息校验")
+Rel(facadeCacheComponent,userSystem, "用户信息获取")
+Rel(facadeCacheComponent,redis, "缓存")
 
+Rel(recComponent,tpp, "推荐系统")
+Rel(recComponent,userProfileComponent, "用户弹幕配置")
+Rel(recComponent,listComponent, "弹幕列表")
 
-System_Ext(security,"风控系统")
-System_Ext(video,"投稿系统")
-System_Ext(userSystem,"用户系统")
-
-Rel_R(checkComponent, security, "安全规则校验")
-Rel(checkComponent, video, "视频信息校验")
-Rel(authComponent, userSystem, "权限规则")
-
-
-
-
-
-
-
-
-
-
+Rel(barrageService,db, "操作数据库弹幕")
+Rel(barrageService,redis, "缓存")
+Rel_R(db,rocketmq, "binlog")
+Rel_U(rocketmq,barrageService, "接收消息")
 @enduml

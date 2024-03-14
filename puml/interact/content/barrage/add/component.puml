@@ -2,38 +2,53 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 
-title 关注/点赞/收藏链路组件图
+title 发送弹幕组件图
 
 Person(user, "用户")
-System_Ext(gateway,"网关系统")
-Rel_R(user, gateway, "点赞/取消点赞")
+System(gateway,"网关系统")
 
-Container_Boundary(relationFacade, "关系应用"){
-    Component(checkComponent, "校验组件", "component", "检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
-    Rel_R(gateway, checkComponent, "点赞/取消点赞")
-    Rel(checkComponent, authComponent, "权限规则")
+Rel_L(user, gateway, "发弹幕")
+
+Container_Boundary(barrageFacade, "弹幕应用"){
+    Component(checkComponent, "校验组件", "component", "检验&权限")
+    Component(facadeCacheComponent, "缓存组件", "component", "缓存服务")
+    Rel(checkComponent, facadeCacheComponent, "发起请求")
+}
+Container_Boundary(barrageService, "弹幕服务"){
+    Component(barrageComponent, "弹幕服务组件", "component", "弹幕服务组件")
+    Component(profileComponent, "视频打点组件", "component", "视频打点组件")
+    Component(barrageStatComponent, "弹幕统计组件", "component", "统计组件")
 }
 
-Container_Boundary(relationService, "关系服务"){
-    Component(relationComponent, "组件", "component", "上传令牌服务")
-    Rel(authComponent, uploadComponent, "上传")
+Container_Boundary(relationService, "关系统计服务"){
+    Component(relationComponent, "关系组件", "component", "关系组件")
+    Component(statComponent, "统计公共组件", "component", "统计公共组件")
 }
+System(security,"风控系统")
+System(userSystem,"用户系统")
+System(videoSystem,"视频系统")
+System(rocketmq,"MQ")
+System(redis,"缓存","redis")
+ComponentDb(db, "数据库", "Mysql")
+
+Rel(gateway, checkComponent, "发起请求")
+Rel_L(checkComponent, security, "IP校验&安全检验")
+Rel(facadeCacheComponent,videoSystem, "视频基础信息校验")
+Rel(facadeCacheComponent,userSystem, "用户信息获取")
+Rel(facadeCacheComponent,redis, "缓存")
 
 
+Rel(checkComponent,barrageComponent, "保存弹幕")
+Rel_U(barrageService,db, "操作数据库弹幕")
+Rel(db,rocketmq, "binlog")
+Rel_L(relationComponent,rocketmq, "binlog")
 
-System_Ext(security,"风控系统")
-System_Ext(video,"投稿系统")
-System_Ext(userSystem,"用户系统")
+Rel(rocketmq,profileComponent, "更新打点信息")
+Rel(rocketmq,barrageStatComponent, "保存弹幕")
+Rel(rocketmq,barrageComponent, "更新点赞信息")
 
-Rel_R(checkComponent, security, "安全规则校验")
-Rel(checkComponent, video, "视频信息校验")
-Rel(authComponent, userSystem, "权限规则")
-
-
-
-
-
+Rel(barrageStatComponent,statComponent, "更新数据统计")
+Rel(barrageService,redis, "缓存")
 
 
 

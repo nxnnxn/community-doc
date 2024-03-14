@@ -2,7 +2,7 @@
 !include <C4/C4_Sequence>
 SHOW_INDEX()
 SHOW_LEGEND()
-
+title 弹幕列表时序图
 Person(user, "用户")
 System(gateway,"网关系统")
 System(CDN,"CDN")
@@ -15,7 +15,6 @@ Boundary_End()
 
 Container_Boundary(barrageService, "弹幕服务")
     Component(userProfileComponent, "用户配置组件", "component", "用户配置组件")
-    Component(cacheComponent, "弹幕缓存组件", "component", "缓存组件")
     Component(profileComponent, "视频打点组件", "component", "视频打点组件")
     Component(listComponent, "弹幕列表组件", "component", "弹幕列表组件")
 Boundary_End()
@@ -30,35 +29,40 @@ ComponentDb(db, "数据库", "Mysql")
 Rel(user, gateway, "请求")
 Rel(gateway, gateway, "用户身份验证")
 Rel(gateway, checkComponent, "发起请求")
+
+
+Rel(checkComponent, facadeCacheComponent, "请求")
+Rel(facadeCacheComponent, videoSystem, "获取视频信息，先缓存再服务")
+BiRel(facadeCacheComponent, redis, "请求缓存")
+Rel(videoSystem, facadeCacheComponent, "返回")
+Rel(facadeCacheComponent, checkComponent, "返回")
+Rel(checkComponent, checkComponent, "检查视频支持弹幕?")
+
+
+
+Rel(checkComponent, facadeCacheComponent, "请求")
+Rel(facadeCacheComponent, userSystem, "获取用户是否禁言,先缓存再服务")
+BiRel(facadeCacheComponent, redis, "请求缓存")
+Rel(userSystem, facadeCacheComponent, "返回")
+Rel(facadeCacheComponent, checkComponent, "返回")
+Rel(checkComponent, checkComponent, "检查用户是否禁言?")
+
 Rel(checkComponent, recComponent, "请求用户分组组件")
 Rel(recComponent, tpp, "请求用户分组组件")
 Rel(tpp, recComponent, "返回")
 Rel(recComponent, recComponent, "若出错或超时,默认用户分组")
-Rel(recComponent, checkComponent, "返回")
-Rel(checkComponent, userProfileComponent, "请求")
 
-Rel(userProfileComponent, cacheComponent, "请求")
-Rel(cacheComponent, videoSystem, "获取视频信息，先缓存再服务")
-BiRel(cacheComponent, redis, "请求缓存")
-Rel(videoSystem, cacheComponent, "返回")
+Rel(recComponent, userProfileComponent, "请求")
+Rel(userProfileComponent, db, "获取用户个人配置,先缓存再DB")
+BiRel(db, redis, "请求缓存")
+Rel(db, userProfileComponent, "返回")
 
-
-Rel(userProfileComponent, userProfileComponent, "检查视频支持弹幕?")
-Rel(userProfileComponent, cacheComponent, "请求")
-Rel(cacheComponent, userSystem, "获取用户是否禁言,先缓存再服务")
-BiRel(cacheComponent, redis, "请求缓存")
-Rel(userSystem, cacheComponent, "返回")
-Rel(cacheComponent, userProfileComponent, "返回")
-Rel(userProfileComponent, cacheComponent, "请求")
-Rel(cacheComponent, db, "获取用户是否禁言,先缓存再DB")
-BiRel(cacheComponent, redis, "请求缓存")
-Rel(db, cacheComponent, "返回")
-Rel(cacheComponent, userProfileComponent, "返回")
 Rel(userProfileComponent, profileComponent, "获取视频打点数据")
 Rel(redis, profileComponent, "返回")
-Rel(userProfileComponent, profileComponent, "缓存数据不存在,配置默认打点")
-Rel(userProfileComponent, checkComponent, "返回")
-Rel(checkComponent, gateway, "返回")
+Rel(profileComponent, profileComponent, "缓存数据不存在,配置默认打点")
+Rel(profileComponent, userProfileComponent, "返回")
+Rel(userProfileComponent, recComponent, "返回")
+Rel(recComponent, gateway, "返回")
 Rel(gateway, user, "返回")
 
 
@@ -93,16 +97,16 @@ end
  Rel(CDN, user, "返回")
 
 == 列表缓存更新 ==
-Rel(rocketmq, cacheComponent, "监听到变更")
-Rel(cacheComponent, cacheComponent, "redis10分钟幂未通过,返回")
+Rel(rocketmq, listComponent, "监听到变更")
+Rel(listComponent, listComponent, "redis10分钟幂未通过,返回")
 alt 弹幕状态变更
-  Rel(cacheComponent, redis, "更新弹幕列表缓存&新增单条记录缓存")
-  Rel(redis, cacheComponent, "更新")
+  Rel(listComponent, redis, "更新弹幕列表缓存&新增单条记录缓存")
+  Rel(redis, listComponent, "更新")
 alt 是否每隔1分钟裁剪列表缓存
-  Rel(cacheComponent, redis, "维持ZSET列表在合理长度")
-  Rel(redis, cacheComponent, "更新")
+  Rel(listComponent, redis, "维持ZSET列表在合理长度")
+  Rel(redis, listComponent, "更新")
 end
 end
-Rel(cacheComponent, rocketmq, "完成更新")
+Rel(listComponent, rocketmq, "完成更新")
 SHOW_LEGEND()
 @enduml
