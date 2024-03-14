@@ -2,8 +2,9 @@
 !include <C4/C4_Sequence>
 SHOW_INDEX()
 SHOW_LEGEND()
-System(rocketmq,"MQ")
 
+title 弹幕送审时序图
+System(rocketmq,"MQ")
 System(job,"任务中间件系统")
 Container_Boundary(barrageJobService, "弹幕任务服务")
     Component(auditComponent, "送审组件", "component", "弹幕送审")

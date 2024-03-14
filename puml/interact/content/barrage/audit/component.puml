@@ -2,7 +2,7 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 
-title 关注/点赞/收藏链路组件图
+title 弹幕送审组件图
 
 System(rocketmq,"MQ")
 System(auditSystem,"审核系统")
