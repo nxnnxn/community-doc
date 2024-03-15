@@ -5,12 +5,12 @@ HIDE_STEREOTYPE()
 title 短视频社区
 
 Boundary(fenfa,"分发"){
-   Boundary(searchAndRec, "搜推"){
+   Boundary(searchAndRec, "搜推广"){
      System(search, "搜索")
      System(rec, "推荐")
-     System(data, "数据工程")
-     Lay_L(data, search)
-     Lay_R(data, rec)
+     System(ad, "广告")
+     Lay_L(ad, search)
+     Lay_R(ad, rec)
   }
 
   Boundary(feed, "feed"){
@@ -100,10 +100,8 @@ Boundary(touch,"触达"){
 Lay_D(fenfa,contentProduction)
 
 
-
-
 Boundary(shangyehua,"商业化"){
-   Boundary(guanggao, "广告"){
+   Boundary(guanggao, "营销"){
      System(zhaoshang, "招商")
      System(a, "AAAAA")
      System(b, "BBBBB")

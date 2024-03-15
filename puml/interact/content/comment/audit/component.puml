@@ -2,37 +2,30 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 
-title 关注/点赞/收藏链路组件图
+title 评论送审组件图
 
-Person(user, "用户")
-System_Ext(gateway,"网关系统")
-Rel_R(user, gateway, "点赞/取消点赞")
+System(rocketmq,"MQ")
+System_Ext(auditSystem,"审核系统")
+System(job,"任务中间件系统")
 
-Container_Boundary(relationFacade, "关系应用"){
-    Component(checkComponent, "校验组件", "component", "检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
-    Rel_R(gateway, checkComponent, "点赞/取消点赞")
-    Rel(checkComponent, authComponent, "权限规则")
+Container_Boundary(commentJobService, "评论任务服务"){
+    Component(auditComponent, "送审组件", "component", "评论送审")
+    Component(messageComponent, "消息组件", "component", "消息组件")
+}
+Container_Boundary(commentService, "评论服务"){
+    Component(commentComponent, "评论服务组件", "component", "评论服务组件")
 }
 
-Container_Boundary(relationService, "关系服务"){
-    Component(relationComponent, "组件", "component", "上传令牌服务")
-    Rel(authComponent, uploadComponent, "上传")
-}
+System_Ext(messageSystem,"消息系统")
+ComponentDb(db, "评论数据库", "Mysql")
 
-
-
-System_Ext(security,"风控系统")
-System_Ext(video,"投稿系统")
-System_Ext(userSystem,"用户系统")
-
-Rel_R(checkComponent, security, "安全规则校验")
-Rel(checkComponent, video, "视频信息校验")
-Rel(authComponent, userSystem, "权限规则")
-
-
-
-
+Rel(rocketmq, auditComponent, "接收到数据库变更消息")
+Rel(rocketmq, messageComponent, "接收到数据库变更消息")
+Rel(job, auditComponent, "兜底任务")
+BiRel_L(auditComponent, auditSystem, "互相调用")
+Rel(messageComponent, messageSystem, "发送&接收消息")
+Rel(auditComponent, commentComponent, "调用服务")
+Rel_L(commentComponent, db, "修改&保存数据库")
 
 
 

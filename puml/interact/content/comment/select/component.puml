@@ -2,41 +2,41 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 
-title 关注/点赞/收藏链路组件图
+title 评论列表组件图
 
 Person(user, "用户")
-System_Ext(gateway,"网关系统")
-Rel_R(user, gateway, "点赞/取消点赞")
+System(gateway,"网关系统")
+Rel_L(user, gateway, "看评论")
 
-Container_Boundary(relationFacade, "关系应用"){
-    Component(checkComponent, "校验组件", "component", "检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
-    Rel_R(gateway, checkComponent, "点赞/取消点赞")
-    Rel(checkComponent, authComponent, "权限规则")
+Container_Boundary(commentFacade, "评论应用"){
+   Component(checkComponent, "校验组件", "component", "参数校验")
+   Component(recComponent, "推荐组件", "component", "分组组件")
+   Component(listFacadeComponent, "评论FEED组件", "component", "评论FEED组件")
+   Component(facadeCacheComponent, "前台缓存组件", "component", "缓存组件")
+   Rel(checkComponent, listFacadeComponent, "发起请求")
+   Rel(checkComponent, recComponent, "发起请求")
+   Rel_L(listFacadeComponent, facadeCacheComponent, "发起请求")
 }
-
-Container_Boundary(relationService, "关系服务"){
-    Component(relationComponent, "组件", "component", "上传令牌服务")
-    Rel(authComponent, uploadComponent, "上传")
+Container_Boundary(commentService, "评论服务"){
+   Component(listComponent, "评论列表组件", "component", "评论列表组件")
 }
-
-
-
-System_Ext(security,"风控系统")
-System_Ext(video,"投稿系统")
 System_Ext(userSystem,"用户系统")
+System_Ext(videoSystem,"视频系统")
+System(tpp,"推荐系统")
+System(rocketmq,"MQ")
+System(redis,"缓存","redis")
+ComponentDb(db, "数据库", "Mysql")
 
-Rel_R(checkComponent, security, "安全规则校验")
-Rel(checkComponent, video, "视频信息校验")
-Rel(authComponent, userSystem, "权限规则")
+Rel(gateway, checkComponent, "发起请求")
+Rel(listFacadeComponent,listComponent, "列表获取")
+Rel(facadeCacheComponent,videoSystem, "视频基础信息校验")
+Rel(facadeCacheComponent,userSystem, "用户信息获取")
+Rel(facadeCacheComponent,redis, "缓存")
 
+Rel(recComponent,tpp, "推荐系统")
 
-
-
-
-
-
-
-
-
+Rel(listComponent,db, "操作数据库评论")
+Rel(listComponent,redis, "缓存")
+Rel_R(db,rocketmq, "binlog")
+Rel_U(rocketmq,listComponent, "接收消息")
 @enduml

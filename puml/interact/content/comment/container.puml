@@ -2,56 +2,58 @@
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
 
-title 投稿系统应用架构图
+title 评论应用架构图
 
 Person(user, "用户")
 Person(user1, "运营")
 Person(user2, "安检")
 
-System_Ext(gateway,"网关系统")
+System_Boundary(interaction, "内容互动"){
+    Container_Boundary(commentBoundary, "评论") {
+          Container(commentFacade, "评论应用","Spring-boot")
+          Container(commentService, "评论服务","Spring-boot")
+          Container(commentJobService, "评论任务服务","Spring-boot")
+          ContainerDb(commentDatabase, "数据库", "Mysql")
+          ContainerQueue(commentQueue, "弹幕队列", "RocketMq")
+          Rel(commentFacade, commentService, "调用")
+          Rel_L(commentService, commentDatabase, "保存")
+          Rel(commentService, commentQueue, "发送")
+          Rel(commentJobService, commentService, "调用")
+          Rel_R(commentQueue, commentJobService, "消息接收")
+    }
 
-System_Boundary(contentProduction, "内容生产"){
-    System_Boundary(postBoundary, "投稿") {
-          Container(postFacade, "投稿应用","Spring-boot")
-          Container(postService, "投稿服务","Spring-boot")
-          Container(postReadService, "帖子读服务","Spring-boot")
-          ContainerDb(postDatabase, "帖子数据库", "Mysql")
-          ContainerQueue(postQueue, "帖子队列", "RocketMq")
-          Rel(postFacade, postService, "调用")
-          Rel_U(postService, postDatabase, "调用")
-          Rel_U(postReadService, postDatabase, "调用")
-          Rel_R(postService,postQueue, "发送")
-          Rel_R(postQueue,postReadService, "消息接收")
+    Container_Boundary(InteractCommonBoundary, "互动通用"){
+        Container(interactAdmin, "互动后台","Spring-boot")
     }
-    System_Boundary(mediaProcessBoundary, "媒体处理") {
-           System(media_process, "媒体处理")
-    }
-    System_Boundary(postToolBoundary, "工具") {
-          System(postTool, "工具系统")
-    }
-    Rel_L(postService, media_process, "调用")
-    Rel_L(gateway, postTool, "调用")
+     System_Boundary(relationBoundary, "关系互动"){
+             System(relation, "关系系统")
+     }
+
+    Rel_R(interactAdmin, commentService, "调用")
 }
 
 System_Ext(security,"风控系统")
-System_Ext(userSystem,"用户系统")
-System_Ext(community, "社区系统")
+System_Ext(userSystem,"认证系统")
+System_Ext(forbidden, "禁闭系统")
 System_Ext(audit, "审核系统")
 System_Ext(message, "消息系统")
-System_Ext(play, "播放系统")
+System_Ext(video, "媒体系统")
+System_Ext(gateway,"网关系统")
 
-Rel_R(user, gateway, "发帖")
-Rel(gateway, postFacade, "发帖&工具")
-Rel(user1,contentProduction, "运营")
 
-Rel(contentProduction, security, "安全规则")
-Rel(postReadService, userSystem, "用户认证&权限")
-Rel(postReadService, community, "获取社区信息")
-Rel(postService, message, "发布消息")
-Rel_U(play, postReadService, "获取地址")
-Rel(postService, audit, "发起审核")
-Rel_U(user2, audit, "审核")
 
+Rel(user, gateway, "发&看评论")
+Rel(gateway,commentFacade, "发&看弹幕")
+Rel(user1,interactAdmin, "运营")
+
+Rel(commentFacade, security, "安全规则")
+Rel(commentFacade, userSystem, "用户认证&权限")
+Rel(commentFacade, forbidden, "获取禁闭列表")
+Rel(commentJobService, message, "发布消息")
+Rel(commentJobService, audit, "发起审核")
+Rel(commentService, video, "获取媒体信息")
+Rel(commentService, relation, "点赞")
+Rel_R(user2, audit, "审核")
 
 
 

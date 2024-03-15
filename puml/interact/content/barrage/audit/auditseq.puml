@@ -53,7 +53,10 @@ Rel(messageComponent,rocketmq , "完成处理")
 
 == 兜底处理 ==
 Rel(job, auditComponent, "每30分钟扫描")
-Rel(auditComponent, auditComponent, "查看状态")
+Rel(auditComponent, barrageComponent, "查询超过30分钟异常数据")
+Rel(barrageComponent, db, "查询")
+Rel(db, barrageComponent, "返回")
+Rel(barrageComponent, auditComponent, "返回")
 alt 状态是待送审
  Rel(auditComponent, auditComponent, "送审逻辑")
 else 状态是已送审&30分钟无结果

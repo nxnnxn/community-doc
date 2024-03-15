@@ -3,95 +3,67 @@
 SHOW_INDEX()
 SHOW_LEGEND()
 
-Person(user, "用户")
-System(gateway,"网关系统")
-
-Rel(user, gateway, "请求")
-Rel(gateway, gateway, "用户身份验证")
-
-Container_Boundary(relationFacade, "关系应用")
-    Component(checkComponent, "校验组件", "component", "IP校验&安全检验")
-    Component(authComponent, "权限组件", "component", "用户权限检验")
-Boundary_End()
-
-Container_Boundary(relationService, "关系服务")
-    Component(relationComponent, "关系组件", "component", "关系关注")
-    Component(statComponent, "计数器组件", "component", "计数器更新")
-Boundary_End()
-System(security,"风控系统")
-System(userSystem,"用户系统")
-System(videoSystem,"视频系统")
+title 评论送审时序图
 System(rocketmq,"MQ")
-ComponentDb(db, "数据库", "表格数据库")
-ComponentDb(redis, "缓存", "redis")
+System(job,"任务中间件系统")
+Container_Boundary(commentJobService, "评论任务服务")
+    Component(auditComponent, "送审组件", "component", "评论送审")
+    Component(messageComponent, "消息组件", "component", "消息组件")
+Boundary_End()
 
-Rel(gateway, checkComponent, "发起请求")
+Container_Boundary(commentService, "评论服务")
+    Component(commentComponent, "评论服务组件", "component", "评论服务组件")
+Boundary_End()
 
-Rel(checkComponent, security, "获取规则")
-Rel(security,checkComponent, "IP校验&安全检验")
+System_Ext(auditSystem,"审核系统")
+System_Ext(messageSystem,"消息系统")
+ComponentDb(db, "评论数据库", "Mysql")
 
-Rel(checkComponent, authComponent, "权限控制")
-Rel(authComponent, userSystem, "用户信息获取")
-Rel(userSystem,authComponent, "实名认证&权限获取")
-
-alt 若对象是视频
-Rel(authComponent, videoSystem, "视频信息获取")
-Rel(videoSystem,authComponent, "视频信息&权限判断")
+== 送审 ==
+Rel(rocketmq, auditComponent, "接收到数据库变更消息")
+Rel(auditComponent, auditComponent, "查看状态")
+alt 状态是待送审
+ Rel(auditComponent, auditSystem, "调用审核系统API")
+ Rel(auditSystem, auditComponent, "返回")
+ Rel(auditComponent,commentComponent , "调用服务")
+ Rel(commentComponent,db , "修改状态&存储相关审核信息")
+ Rel(db,commentComponent , "返回")
+ Rel(commentComponent,auditComponent , "返回")
 end
+Rel(auditComponent,rocketmq , "完成处理")
 
-Rel(authComponent, relationComponent, "发起请求")
-Rel(relationComponent, db, "查询信息")
-Rel(db, relationComponent, "返回")
-alt 新增信息
-alt 若信息不存在
-Rel(relationComponent, db, "插入DB")
-end
-else 删除信息
-alt 若信息存在
-Rel(relationComponent,db , "删除DB")
-end
-end
-Rel(db, relationComponent, "返回")
+== 审核处理 ==
+Rel(auditSystem, auditComponent, "审核完成")
+Rel(auditComponent, commentComponent, "修改数据库&记录信息")
+Rel(commentComponent,db , "修改状态&存储相关审核信息")
+Rel(db,commentComponent , "返回")
+Rel(commentComponent,auditComponent , "返回")
+Rel(auditComponent,auditSystem , "完成处理")
 
 
-Rel(relationComponent, authComponent, "返回")
-Rel(authComponent, gateway, "返回")
-Rel(gateway, user, "返回")
+== 消息处理 ==
+Rel(rocketmq, messageComponent, "接收审核后信息")
+Rel(messageComponent, messageComponent, "查看状态")
+alt 状态是审核未通过
+ Rel(messageComponent, messageSystem, "发送审核未通过消息")
+ Rel(messageSystem, messageComponent, "返回")
+end
+Rel(messageComponent,rocketmq , "完成处理")
 
-== 计数器更新 ==
-Rel(rocketmq, statComponent, "监听到变更")
-alt redis10分钟幂等校验通过
-Rel(statComponent, statComponent, "统计策略选择")
-alt 接入类型没有详情
-  Rel(statComponent, db, "对相关列进行+-")
-else 有detail&小于10000&上次count时间小于特定值
-  Rel(statComponent, db, "对相关列进行+-")
-else  有detail&&小于10000&上次count时间大与特定值
-  Rel(statComponent, db, "对数据调用详情数据进行count")
-else 其他
-   Rel(statComponent, db, "对相关列进行+-")
-end
-Rel(db, statComponent, "数据库返回")
-end
-Rel(statComponent, rocketmq, "完成更新")
 
-== 计数器缓存更新 ==
-Rel(rocketmq, statComponent, "监听到变更")
-alt redis10分钟幂等校验通过
-Rel(statComponent, statComponent, "更新策略选择")
-alt 统计数小于10000
-  Rel(statComponent, redis, "每列变化都主动更新缓存")
-else 统计数>10000
-  Rel(statComponent, redis, "每取模1000在0-100上次更新一次")
-else  其他列更新
-  Rel(statComponent, redis, "对库里所有数据更新一次")
+== 兜底处理 ==
+Rel(job, auditComponent, "每30分钟扫描")
+Rel(auditComponent, commentComponent, "查询超过30分钟异常数据")
+Rel(commentComponent, db, "查询")
+Rel(db, commentComponent, "返回")
+Rel(commentComponent, auditComponent, "返回")
+alt 状态是待送审
+ Rel(auditComponent, auditComponent, "送审逻辑")
+else 状态是已送审&30分钟无结果
+ Rel(auditComponent, auditSystem, "查询状态")
+ Rel(auditSystem, auditComponent, "返回")
 end
-Rel(redis, statComponent, "数据库返回")
-end
-Rel(statComponent, rocketmq, "完成更新")
-== 详情缓存更新 ==
-Rel(rocketmq, relationComponent, "监听到变更")
-Rel(relationComponent, redis, "更新布隆过滤器")
-Rel(redis, relationComponent, "返回")
-SHOW_LEGEND()
+Rel(auditComponent,job , "完成处理")
+
+
 @enduml
