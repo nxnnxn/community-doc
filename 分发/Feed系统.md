@@ -4,13 +4,6 @@
 
 > 目标:如何以最小的成本来完成业务的试错
 >
-> 调研:研发流程调研
->
-> https://mobilelive.medium.com/tdd-vs-bdd-vs-ddd-which-one-should-you-choose-e562e313f955
->
-> https://www.mobilelive.ca/blog/value-of-tdd-bdd-ddd
->
-> 如何通过一个文档来完成大家的这些
 
 ## 1.需求背景
 
@@ -152,6 +145,8 @@
 
 
 ### 3.1.3.Feed聚合
+
+
 
 
 

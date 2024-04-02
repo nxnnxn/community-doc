@@ -10,6 +10,7 @@ Person(user2, "安检")
 
 System_Ext(gateway,"网关系统")
 
+
 System_Boundary(contentProduction, "内容生产"){
     System_Boundary(postBoundary, "投稿") {
           Container(postFacade, "投稿应用","Spring-boot")
