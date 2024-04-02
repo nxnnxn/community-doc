@@ -1,5 +1,5 @@
 @startuml
-!theme minty
+!theme cerulean-outline
 'https://plantuml.com/use-case-diagram
 
 :Main Admin: as Admin
