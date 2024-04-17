@@ -43,7 +43,7 @@ Boundary(content,"内容"){
   Lay_D(contentProduction, contentPlay)
 }
 
-Boundary(interact,"消费"){
+Boundary(interact,"互动"){
    Boundary(relationInteract, "关系互动"){
      System(follow, "关注")
      System(praise, "点赞")

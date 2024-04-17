@@ -1,7 +1,24 @@
 @startuml
 !theme cerulean-outline
 skinparam backgroundcolor #FFFFFF
+skinparam handwritten true
+skinparam actorStyle awesome
+left to right direction
 
+actor "Food Critic" as fc
+rectangle Restaurant {
+  usecase "Eat Food" as UC1
+  usecase "Pay for Food" as UC2
+  usecase "Drink" as UC3
+}
+fc --> UC1
+fc --> UC2
+fc --> UC3
+
+:User: --> (Use)
+"Main Admin" as Admin
+"Use the application" as (Use)
+Admin --> (Admin the application)
 
 
 
