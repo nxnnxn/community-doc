@@ -4,23 +4,22 @@ LAYOUT_WITH_LEGEND()
 
 Person(user, "用户")
 
-System_Boundary(item, "关系"){
-    System(relation, "关系系统")
-    System(follow, "关注系统")
+System_Boundary(feedBoundary, "Feed"){
+    System(feedSystem, "Feed系统")
 }
 
+System_Ext(commentSystem, "评论系统")
+System_Ext(userSystem, "用户系统")
+System_Ext(relationSystem, "关系系统")
+System_Ext(playSystem, "播放系统")
+System_Ext(tppSystem, "推荐系统")
 
-System_Ext(feed, "场景Feed")
-System_Ext(security,"安全系统")
-System_Ext(userSystem,"用户系统")
-
-Rel(user, relation, "点赞/收藏")
-Rel(user, follow, "关注")
-Rel_Neighbor(follow, relation, "依赖")
-Rel(relation, security, "安全检查")
-Rel(relation, userSystem, "用户校验")
-Rel_L(feed, relation, "获取关系")
-Rel_L(feed, follow, "获取关注")
+Rel_D(user,feedSystem, "获取FEED", "HTTP")
+Rel_D(feedSystem,tppSystem, "获取推荐信息", "RPC")
+Rel_D(feedSystem,userSystem, "获取用户信息", "RPC")
+Rel_D(feedSystem,playSystem, "获取Item打包信息", "RPC")
+Rel_D(feedSystem,commentSystem, "获取评论数信息", "RPC")
+Rel_D(feedSystem,relationSystem, "获取用户关系信息", "RPC")
 
 
 @enduml
