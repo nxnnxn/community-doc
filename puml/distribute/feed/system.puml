@@ -8,18 +8,19 @@ System_Boundary(feedBoundary, "Feed"){
     System(feedSystem, "Feed系统")
 }
 
-System_Ext(commentSystem, "评论系统")
 System_Ext(userSystem, "用户系统")
-System_Ext(relationSystem, "关系系统")
-System_Ext(playSystem, "播放系统")
+System_Ext(followSystem, "关注系统")
+System_Ext(playSystem, "内容系统")
+System_Ext(adSystem, "广告系统")
+System_Ext(goodSystem, "商品系统")
 System_Ext(tppSystem, "推荐系统")
 
 Rel_D(user,feedSystem, "获取FEED", "HTTP")
 Rel_D(feedSystem,tppSystem, "获取推荐信息", "RPC")
 Rel_D(feedSystem,userSystem, "获取用户信息", "RPC")
-Rel_D(feedSystem,playSystem, "获取Item打包信息", "RPC")
-Rel_D(feedSystem,commentSystem, "获取评论数信息", "RPC")
-Rel_D(feedSystem,relationSystem, "获取用户关系信息", "RPC")
-
+Rel_D(feedSystem,playSystem, "获取内容信息", "RPC")
+Rel_D(feedSystem,followSystem, "获取用户关注关系", "RPC")
+Rel_D(feedSystem,adSystem, "获取广告信息", "RPC")
+Rel_D(feedSystem,goodSystem, "获取商品信息", "RPC")
 
 @enduml
